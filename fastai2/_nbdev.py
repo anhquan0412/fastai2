@@ -42,7 +42,15 @@ index = {"subplots": "00_torch_core.ipynb",
          "L.cat": "00_torch_core.ipynb",
          "concat": "00_torch_core.ipynb",
          "Chunks": "00_torch_core.ipynb",
+         "show_title": "00_torch_core.ipynb",
+         "ShowTitle": "00_torch_core.ipynb",
+         "TitledInt": "00_torch_core.ipynb",
+         "TitledFloat": "00_torch_core.ipynb",
+         "TitledStr": "00_torch_core.ipynb",
+         "TitledTuple": "00_torch_core.ipynb",
          "pd.DataFrame.__init__": "00_torch_core.ipynb",
+         "get_empty_df": "00_torch_core.ipynb",
+         "display_df": "00_torch_core.ipynb",
          "one_param": "00_torch_core.ipynb",
          "item_find": "00_torch_core.ipynb",
          "find_device": "00_torch_core.ipynb",
@@ -110,6 +118,7 @@ index = {"subplots": "00_torch_core.ipynb",
          "BCEWithLogitsLossFlat": "01_layers.ipynb",
          "BCELossFlat": "01_layers.ipynb",
          "MSELossFlat": "01_layers.ipynb",
+         "L1LossFlat": "01_layers.ipynb",
          "LabelSmoothingCrossEntropy": "01_layers.ipynb",
          "trunc_normal_": "01_layers.ipynb",
          "Embedding": "01_layers.ipynb",
@@ -221,9 +230,11 @@ index = {"subplots": "00_torch_core.ipynb",
          "PointScaler": "07_vision.core.ipynb",
          "BBoxLabeler": "07_vision.core.ipynb",
          "decodes": "40_tabular.core.ipynb",
+         "using_attr": "08_vision.data.ipynb",
          "ImageDataBunch": "08_vision.data.ipynb",
          "ImageDataBunch.from_csv": "08_vision.data.ipynb",
-         "ImageDataBunch.from_name_re": "08_vision.data.ipynb",
+         "ImageDataBunch.from_path_re": "08_vision.data.ipynb",
+         "SegmentationDataBunch": "08_vision.data.ipynb",
          "get_grid": "08_vision.data.ipynb",
          "clip_remove_empty": "08_vision.data.ipynb",
          "bb_pad": "08_vision.data.ipynb",
@@ -469,6 +480,7 @@ index = {"subplots": "00_torch_core.ipynb",
          "Recorder.plot_sched": "14_callback.schedule.ipynb",
          "Learner.fit_flat_cos": "14_callback.schedule.ipynb",
          "Learner.fit_sgdr": "14_callback.schedule.ipynb",
+         "Learner.fine_tune": "14_callback.schedule.ipynb",
          "LRFinder": "14_callback.schedule.ipynb",
          "Recorder.plot_lr_find": "14_callback.schedule.ipynb",
          "Learner.lr_find": "14_callback.schedule.ipynb",
@@ -583,7 +595,7 @@ index = {"subplots": "00_torch_core.ipynb",
          "LMTensorText": "31_text.data.ipynb",
          "Numericalize": "31_text.data.ipynb",
          "LMDataLoader": "31_text.data.ipynb",
-         "Str.truncate": "31_text.data.ipynb",
+         "TitledStr.truncate": "31_text.data.ipynb",
          "pad_input": "31_text.data.ipynb",
          "SortedDL": "31_text.data.ipynb",
          "TextBlock": "31_text.data.ipynb",
@@ -739,16 +751,8 @@ modules = ["torch_core.py",
            "callback/tensorboard.py",
            "test_utils.py"]
 
+doc_url = "https://dev.fast.ai/"
+
 git_url = "https://github.com/fastai/fastai2/tree/master/"
 
-def custom_doc_links(name): 
-    from nbdev.sync import source_nb
-    import importlib
-    _packages = ["fastcore", "nbdev"]
-    _urls = [f"https://{p}.fast.ai/" for p in _packages]
-    for p,l in zip(_packages, _urls):
-        mod = importlib.import_module(f"{p}._nbdev")
-        try_pack = source_nb(name, is_name=True, mod=mod)
-        if try_pack:
-            page = '.'.join(try_pack.split('_')[1:]).replace('.ipynb', '.html')
-            return f'{l}{page}#{name}'
+def custom_doc_links(name): return None
