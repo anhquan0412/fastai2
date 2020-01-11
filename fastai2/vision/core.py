@@ -43,6 +43,22 @@ def reshape(x: Image.Image, h, w, resample=0):
 
 # Cell
 @patch
+def to_bytes_format(im:Image.Image, format='png'):
+    "Convert to bytes, default to PNG format"
+    arr = io.BytesIO()
+    im.save(arr, format=format)
+    return arr.getvalue()
+
+# Cell
+@patch
+def to_thumb(self:Image.Image, h,w):
+    "Same as `thumbnail`, but uses a copy"
+    im = self.copy()
+    im.thumbnail((w,h))
+    return im
+
+# Cell
+@patch
 def resize_max(x: Image.Image, resample=0, max_px=None, max_h=None, max_w=None):
     "`resize` `x` to `max_px`, or `max_h`, or `max_w`"
     h,w = x.shape
@@ -65,7 +81,7 @@ class PILBase(Image.Image, metaclass=BypassNewMeta):
     _show_args = {'cmap':'viridis'}
     _open_args = {'mode': 'RGB'}
     @classmethod
-    def create(cls, fn, **kwargs)->None:
+    def create(cls, fn:(Path,str,Tensor,ndarray,bytes), **kwargs)->None:
         "Open an `Image` from path `fn`"
         if isinstance(fn,Tensor): fn = fn.numpy()
         if isinstance(fn,ndarray): return cls(Image.fromarray(fn))
@@ -202,7 +218,7 @@ class PointScaler(Transform):
         assert sz is not None or self.sz is not None, "Size could not be inferred, pass it in the init of your TensorPoint with `img_size=...`"
         return self.sz if sz is None else sz
 
-    def setup(self, dl):
+    def setups(self, dl):
         its = dl.do_item(0)
         for t in its:
             if isinstance(t, TensorPoint): self.c = t.numel()
@@ -215,7 +231,7 @@ class PointScaler(Transform):
 
 # Cell
 class BBoxLabeler(Transform):
-    def setup(self, dl): self.vocab = dl.vocab
+    def setups(self, dl): self.vocab = dl.vocab
     def before_call(self): self.bbox,self.lbls = None,None
 
     def decode (self, x, **kwargs):
