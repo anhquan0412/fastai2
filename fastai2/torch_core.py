@@ -192,8 +192,9 @@ def default_device(use_cuda=-1):
 # Cell
 def to_device(b, device=None):
     "Recursively put `b` on `device`."
-    if device is None: device=default_device()
-    def _inner(o): return o.to(device, non_blocking=True) if isinstance(o,Tensor) else o
+    if defaults.use_cuda==False: device='cpu'
+    elif device is None: device=default_device()
+    def _inner(o): return o.to(device, non_blocking=True) if isinstance(o,Tensor) else o.to_device(device) if hasattr(o, "to_device") else o
     return apply(_inner, b)
 
 # Cell
@@ -300,7 +301,13 @@ class TensorImage(TensorImageBase): pass
 class TensorImageBW(TensorImage): _show_args = ArrayImageBW._show_args
 
 # Cell
-class TensorMask(TensorImageBase): _show_args = ArrayMask._show_args
+class TensorMask(TensorImageBase):
+    _show_args = ArrayMask._show_args
+
+    def show(self, ctx=None, **kwargs):
+        codes = self.get_meta('codes')
+        if codes is not None: kwargs = merge({'vmin': 1, 'vmax': len(codes)}, kwargs)
+        return super().show(ctx=ctx, **kwargs)
 
 # Cell
 @patch

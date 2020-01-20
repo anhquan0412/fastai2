@@ -89,7 +89,7 @@ class MixedPrecision(Callback):
         if self.dynamic: self.count = 0
 
     def begin_batch(self): self.learn.xb = to_half(self.xb)
-    def after_pred(self):  self.learn.pred = self.pred.float()
+    def after_pred(self): self.learn.pred = to_float(self.pred)
     def after_loss(self):
         if self.training: self.learn.loss *= self.loss_scale
 
@@ -139,4 +139,11 @@ class MixedPrecision(Callback):
 @patch
 def to_fp16(self:Learner, **kwargs):
     self.add_cbs([ModelToHalf(), MixedPrecision(**kwargs)])
+    return self
+
+# Cell
+@patch
+def to_fp32(self: Learner):
+    if hasattr(self, 'model_to_half'):   self.remove_cb(self.model_to_half)
+    if hasattr(self, 'mixed_precision'): self.remove_cb(self.mixed_precision)
     return self

@@ -4,10 +4,9 @@ channels:
 - pytorch
 - defaults
 dependencies:
-- packaging
 - jupyter
-- pytorch>=1.2.0
-- torchvision
+- pytorch>=1.2.0,<1.4.0
+- torchvision<=0.4.2
 - matplotlib
 - pandas
 - requests
