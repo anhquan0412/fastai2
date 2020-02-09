@@ -3,8 +3,8 @@
 __all__ = ['get_files', 'FileGetter', 'image_extensions', 'get_image_files', 'ImageGetter', 'get_text_files',
            'RandomSplitter', 'IndexSplitter', 'GrandparentSplitter', 'FuncSplitter', 'MaskSplitter', 'FileSplitter',
            'ColSplitter', 'parent_label', 'RegexLabeller', 'ColReader', 'CategoryMap', 'Categorize', 'Category',
-           'MultiCategorize', 'MultiCategory', 'OneHotEncode', 'EncodedMultiCategorize', 'get_c', 'ToTensor',
-           'IntToFloatTensor', 'broadcast_vec', 'Normalize']
+           'MultiCategorize', 'MultiCategory', 'OneHotEncode', 'EncodedMultiCategorize', 'RegressionSetup', 'get_c',
+           'ToTensor', 'IntToFloatTensor', 'broadcast_vec', 'Normalize']
 
 # Cell
 from ..torch_basics import *
@@ -177,8 +177,8 @@ class Categorize(Transform):
         self.add_na = add_na
         self.vocab = None if vocab is None else CategoryMap(vocab, add_na=add_na)
 
-    def setups(self, dsrc):
-        if self.vocab is None and dsrc is not None: self.vocab = CategoryMap(dsrc, add_na=self.add_na)
+    def setups(self, dsets):
+        if self.vocab is None and dsets is not None: self.vocab = CategoryMap(dsets, add_na=self.add_na)
         self.c = len(self.vocab)
 
     def encodes(self, o): return TensorCategory(self.vocab.o2i[o])
@@ -195,11 +195,11 @@ class MultiCategorize(Categorize):
         self.add_na = add_na
         self.vocab = None if vocab is None else CategoryMap(vocab, add_na=add_na)
 
-    def setups(self, dsrc):
-        if not dsrc: return
+    def setups(self, dsets):
+        if not dsets: return
         if self.vocab is None:
             vals = set()
-            for b in dsrc: vals = vals.union(set(b))
+            for b in dsets: vals = vals.union(set(b))
             self.vocab = CategoryMap(list(vals), add_na=self.add_na)
 
     def encodes(self, o): return TensorMultiCategory([self.vocab.o2i[o_] for o_ in o])
@@ -216,8 +216,8 @@ class OneHotEncode(Transform):
     order=2
     def __init__(self, c=None): self.c = c
 
-    def setups(self, dsrc):
-        if self.c is None: self.c = len(L(getattr(dsrc, 'vocab', None)))
+    def setups(self, dsets):
+        if self.c is None: self.c = len(L(getattr(dsets, 'vocab', None)))
         if not self.c: warn("Couldn't infer the number of classes, please pass a value for `c` at init")
 
     def encodes(self, o): return TensorMultiCategory(one_hot(o, self.c).float())
@@ -232,11 +232,21 @@ class EncodedMultiCategorize(Categorize):
     def decodes(self, o): return MultiCategory (one_hot_decode(o, self.vocab))
 
 # Cell
-def get_c(dbunch):
-    if getattr(dbunch, 'c', False): return dbunch.c
-    if getattr(dbunch.train_dl.after_item, 'c', False): return dbunch.train_dl.after_item.c
-    if getattr(dbunch.train_dl.after_batch, 'c', False): return dbunch.train_dl.after_batch.c
-    vocab = getattr(dbunch, 'vocab', [])
+class RegressionSetup(Transform):
+    "Transform that floatifies targets"
+    def __init__(self, c=None): self.c = c
+    def encodes(self, o): return tensor(o).float()
+    def setups(self, dsets):
+        if self.c is not None: return
+        try: self.c = len(dsets[0]) if hasattr(dsets[0], '__len__') else 1
+        except: self.c = 0
+
+# Cell
+def get_c(dls):
+    if getattr(dls, 'c', False): return dls.c
+    if getattr(getattr(dls.train, 'after_item', None), 'c', False): return dls.train.after_item.c
+    if getattr(getattr(dls.train, 'after_batch', None), 'c', False): return dls.train.after_batch.c
+    vocab = getattr(dls, 'vocab', [])
     if len(vocab) > 0 and is_listy(vocab[-1]): vocab = vocab[-1]
     return len(vocab)
 
@@ -255,7 +265,7 @@ class IntToFloatTensor(Transform):
 
     def encodes(self, o:TensorImage): return o.float().div_(self.div)
     def encodes(self, o:TensorMask ): return o.div_(self.div_mask).long()
-    def decodes(self, o:TensorImage): return o.clamp(0., 1.) if self.div else o
+    def decodes(self, o:TensorImage): return ((o.clamp(0., 1.) * self.div).long()) if self.div else o
 
 # Cell
 def broadcast_vec(dim, ndim, *t, cuda=True):

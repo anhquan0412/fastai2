@@ -11,18 +11,19 @@ from fastscript import *
 torch.backends.cudnn.benchmark = True
 fastprogress.MAX_COLS = 80
 
-def get_dbunch(size, woof, bs, sh=0., workers=None):
+def get_dls(size, woof, bs, sh=0., workers=None):
     if size<=224: path = URLs.IMAGEWOOF_320 if woof else URLs.IMAGENETTE_320
     else        : path = URLs.IMAGEWOOF     if woof else URLs.IMAGENETTE
     source = untar_data(path)
     if workers is None: workers = min(8, num_cpus())
+    batch_tfms = [Normalize.from_stats(*imagenet_stats)]
+    if sh: batch_tfms.append(RandomErasing(p=0.3, max_count=3, sh=sh))
     dblock = DataBlock(blocks=(ImageBlock, CategoryBlock),
                        splitter=GrandparentSplitter(valid_name='val'),
-                       get_items=get_image_files, get_y=parent_label)
-    item_tfms=[RandomResizedCrop(size, min_scale=0.35), FlipItem(0.5)]
-    batch_tfms=RandomErasing(p=0.3, max_count=3, sh=sh) if sh else None
-    return dblock.databunch(source, path=source, bs=bs, num_workers=workers,
-                            item_tfms=item_tfms, batch_tfms=batch_tfms)
+                       get_items=get_image_files, get_y=parent_label,
+                       item_tfms=[RandomResizedCrop(size, min_scale=0.35), FlipItem(0.5)],
+                       batch_tfms=batch_tfms)
+    return dblock.dataloaders(source, path=source, bs=bs, num_workers=workers)
 
 @call_parse
 def main(
@@ -42,7 +43,7 @@ def main(
     sa:    Param("Self-attention", int)=0,
     sym:   Param("Symmetry for self-attention", int)=0,
     beta:  Param("SAdam softplus beta", float)=0.,
-    act_fn:Param("Activation function", str)='MishJit',
+    act_fn:Param("Activation function", str)='Mish',
     fp16:  Param("Use mixed precision training", int)=0,
     pool:  Param("Pooling method", str)='AvgPool',
     dump:  Param("Print model; don't train", int)=0,
@@ -58,14 +59,14 @@ def main(
     elif opt=='sgd'   : opt_func = partial(SGD, mom=mom)
     elif opt=='ranger': opt_func = partial(ranger, mom=mom, sqr_mom=sqrmom, eps=eps, beta=beta)
 
-    dbunch = get_dbunch(size, woof, bs, sh=sh)
+    dls = get_dls(size, woof, bs, sh=sh)
     if not gpu: print(f'epochs: {epochs}; lr: {lr}; size: {size}; sqrmom: {sqrmom}; mom: {mom}; eps: {eps}')
 
     m,act_fn,pool = [globals()[o] for o in (arch,act_fn,pool)]
 
     for run in range(runs):
         print(f'Run: {run}')
-        learn = Learner(dbunch, m(c_out=10, act_cls=act_fn, sa=sa, sym=sym, pool=pool), opt_func=opt_func, \
+        learn = Learner(dls, m(c_out=10, act_cls=act_fn, sa=sa, sym=sym, pool=pool), opt_func=opt_func, \
                 metrics=[accuracy,top_k_accuracy], loss_func=LabelSmoothingCrossEntropy())
         if dump: print(learn.model); exit()
         if fp16: learn = learn.to_fp16()
