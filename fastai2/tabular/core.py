@@ -75,14 +75,14 @@ def add_elapsed_times(df, field_names, date_field, base_field):
     work_df.drop(field_names,1,inplace=True)
     return df.merge(work_df, 'left', [date_field, base_field])
 
-
 # Cell
 def cont_cat_split(df, max_card=20, dep_var=None):
     "Helper function that returns column names of cont and cat variables from given `df`."
     cont_names, cat_names = [], []
     for label in df:
         if label == dep_var: continue
-        if df[label].dtype == int and df[label].unique().shape[0] > max_card or df[label].dtype == float: cont_names.append(label)
+        if df[label].dtype == int and df[label].unique().shape[0] > max_card or df[label].dtype == float:
+            cont_names.append(label)
         else: cat_names.append(label)
     return cont_names, cat_names
 
@@ -102,38 +102,50 @@ class _TabIloc:
 class Tabular(CollBase, GetAttr, FilteredBase):
     "A `DataFrame` wrapper that knows which cols are cont/cat/y, and returns rows in `__getitem__`"
     _default,with_cont='procs',True
-    def __init__(self, df, procs=None, cat_names=None, cont_names=None, y_names=None, block_y=CategoryBlock, splits=None,
+    def __init__(self, df, procs=None, cat_names=None, cont_names=None, y_names=None, block_y=None, splits=None,
                  do_setup=True, device=None):
         if splits is None: splits=[range_of(df)]
         df = df.iloc[sum(splits, [])].copy()
-        self.databunch = delegates(self._dl_type.__init__)(self.databunch)
+        self.dataloaders = delegates(self._dl_type.__init__)(self.dataloaders)
         super().__init__(df)
 
         self.y_names,self.device = L(y_names),device
-        if block_y is not None:
+        if block_y is None and self.y_names:
+            # Make ys categorical if they're not numeric
+            ys = df[self.y_names]
+            if len(ys.select_dtypes(include='number').columns)!=len(ys.columns): block_y = CategoryBlock()
+            else: block_y = RegressionBlock()
+        if block_y is not None and do_setup:
             if callable(block_y): block_y = block_y()
             procs = L(procs) + block_y.type_tfms
         self.cat_names,self.cont_names,self.procs = L(cat_names),L(cont_names),Pipeline(procs, as_item=True)
         self.split = len(splits[0])
         if do_setup: self.setup()
 
+    def new(self, df):
+        return type(self)(df, do_setup=False, block_y=TransformBlock(),
+                          **attrdict(self, 'procs','cat_names','cont_names','y_names', 'device'))
+
     def subset(self, i): return self.new(self.items[slice(0,self.split) if i==0 else slice(self.split,len(self))])
     def copy(self): self.items = self.items.copy(); return self
-    def new(self, df): return type(self)(df, do_setup=False, block_y=None, **attrdict(self, 'procs','cat_names','cont_names','y_names', 'device'))
-    def show(self, max_n=10, **kwargs): display_df(self.all_cols[:max_n])
+    def decode(self): return self.procs.decode(self)
+    def decode_row(self, row): return self.new(pd.DataFrame(row).T).decode().items.iloc[0]
+    def show(self, max_n=10, **kwargs): display_df(self.new(self.all_cols[:max_n]).decode().items)
     def setup(self): self.procs.setup(self)
     def process(self): self.procs(self)
     def loc(self): return self.items.loc
     def iloc(self): return _TabIloc(self)
     def targ(self): return self.items[self.y_names]
-    def all_col_names (self): return self.cat_names + self.cont_names + self.y_names
+    def x_names (self): return self.cat_names + self.cont_names
+    def all_col_names (self): return self.x_names + self.y_names
     def n_subsets(self): return 2
+    def y(self): return self[self.y_names[0]]
     def new_empty(self): return self.new(pd.DataFrame({}, columns=self.items.columns))
     def to_device(self, d=None):
         self.device = d
         return self
 
-properties(Tabular,'loc','iloc','targ','all_col_names','n_subsets')
+properties(Tabular,'loc','iloc','targ','all_col_names','n_subsets','x_names','y')
 
 # Cell
 class TabularPandas(Tabular):
@@ -151,6 +163,7 @@ def _add_prop(cls, nm):
 _add_prop(Tabular, 'cat')
 _add_prop(Tabular, 'cont')
 _add_prop(Tabular, 'y')
+_add_prop(Tabular, 'x')
 _add_prop(Tabular, 'all_col')
 
 # Cell
@@ -159,7 +172,7 @@ class TabularProc(InplaceTransform):
     def setup(self, items=None, train_setup=False): #TODO: properly deal with train_setup
         super().setup(getattr(items,'train',items), train_setup=False)
         # Procs are called as soon as data is available
-        return self(items.items if isinstance(items,DataSource) else items)
+        return self(items.items if isinstance(items,Datasets) else items)
 
 # Cell
 def _apply_cats (voc, add, c):
@@ -201,7 +214,7 @@ def decodes(self, to:Tabular):
 class NormalizeTab(TabularProc):
     "Normalize the continuous variables."
     order = 2
-    def setups(self, dsrc): self.means,self.stds = dsrc.conts.mean(),dsrc.conts.std(ddof=0)+1e-7
+    def setups(self, dsets): self.means,self.stds = dsets.conts.mean(),dsets.conts.std(ddof=0)+1e-7
     def encodes(self, to): to.conts = (to.conts-self.means) / self.stds
     def decodes(self, to): to.conts = (to.conts*self.stds ) + self.means
 
@@ -235,9 +248,9 @@ class FillMissing(TabularProc):
         if fill_vals is None: fill_vals = defaultdict(int)
         store_attr(self, 'fill_strategy,add_col,fill_vals')
 
-    def setups(self, dsrc):
-        self.na_dict = {n:self.fill_strategy(dsrc[n], self.fill_vals[n])
-                        for n in pd.isnull(dsrc.conts).any().keys()}
+    def setups(self, dsets):
+        self.na_dict = {n:self.fill_strategy(dsets[n], self.fill_vals[n])
+                        for n in pd.isnull(dsets.conts).any().keys()}
 
     def encodes(self, to):
         missing = pd.isnull(to.conts)
@@ -266,7 +279,6 @@ class ReadTabBatch(ItemTransform):
         vals = np.concatenate(o, axis=1)
         df = pd.DataFrame(vals, columns=self.to.all_col_names)
         to = self.to.new(df)
-        to = self.to.procs.decode(to)
         return to
 
 # Cell
