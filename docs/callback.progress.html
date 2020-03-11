@@ -6,6 +6,7 @@ keywords: fastai
 sidebar: home_sidebar
 
 summary: "Callback and helper function to track progress of training or log results"
+description: "Callback and helper function to track progress of training or log results"
 ---
 <!--
 
@@ -18,7 +19,8 @@ summary: "Callback and helper function to track progress of training or log resu
 -->
 
 <div class="container" id="notebook-container">
-    
+    {% raw %}
+        
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
@@ -30,7 +32,7 @@ summary: "Callback and helper function to track progress of training or log resu
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">nbdev.showdoc</span> <span class="k">import</span> <span class="o">*</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">nbdev.showdoc</span> <span class="kn">import</span> <span class="o">*</span>
 </pre></div>
 
     </div>
@@ -43,7 +45,7 @@ summary: "Callback and helper function to track progress of training or log resu
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">fastai2.test_utils</span> <span class="k">import</span> <span class="o">*</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">fastai2.test_utils</span> <span class="kn">import</span> <span class="o">*</span>
 </pre></div>
 
     </div>
@@ -63,9 +65,9 @@ summary: "Callback and helper function to track progress of training or log resu
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="ProgressCallback" class="doc_header"><code>class</code> <code>ProgressCallback</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/callback/progress.py#L10" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ProgressCallback</code>() :: <a href="/learner#Callback"><code>Callback</code></a></p>
+<h2 id="ProgressCallback" class="doc_header"><code>class</code> <code>ProgressCallback</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/callback/progress.py#L10" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ProgressCallback</code>() :: <a href="/callback_core#Callback"><code>Callback</code></a></p>
 </blockquote>
-<p>A <a href="/learner#Callback"><code>Callback</code></a> to handle the display of progress bars</p>
+<p>A <a href="/callback_core#Callback"><code>Callback</code></a> to handle the display of progress bars</p>
 
 </div>
 
@@ -107,32 +109,32 @@ summary: "Callback and helper function to track progress of training or log resu
   <tbody>
     <tr>
       <td>0</td>
-      <td>10.869109</td>
-      <td>9.951051</td>
+      <td>24.803564</td>
+      <td>19.402828</td>
       <td>00:00</td>
     </tr>
     <tr>
       <td>1</td>
-      <td>9.489450</td>
-      <td>7.055983</td>
+      <td>21.064993</td>
+      <td>12.958580</td>
       <td>00:00</td>
     </tr>
     <tr>
       <td>2</td>
-      <td>7.944562</td>
-      <td>4.589709</td>
+      <td>17.115129</td>
+      <td>7.598840</td>
       <td>00:00</td>
     </tr>
     <tr>
       <td>3</td>
-      <td>6.500408</td>
-      <td>2.865617</td>
+      <td>13.544937</td>
+      <td>4.205079</td>
       <td>00:00</td>
     </tr>
     <tr>
       <td>4</td>
-      <td>5.257793</td>
-      <td>1.748249</td>
+      <td>10.624330</td>
+      <td>2.241188</td>
       <td>00:00</td>
     </tr>
   </tbody>
@@ -188,11 +190,11 @@ summary: "Callback and helper function to track progress of training or log resu
 <div class="output_area">
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>(#4) [0,13.415127754211426,10.73176383972168,00:00]
-(#4) [1,11.626967430114746,7.414831161499023,00:00]
-(#4) [2,9.66187858581543,4.707747459411621,00:00]
-(#4) [3,7.844967365264893,2.9102203845977783,00:00]
-(#4) [4,6.3108696937561035,1.7426791191101074,00:00]
+<pre>(#4) [0,24.763446807861328,21.252344131469727,&#39;00:00&#39;]
+(#4) [1,21.242263793945312,14.35609245300293,&#39;00:00&#39;]
+(#4) [2,17.463743209838867,8.522371292114258,&#39;00:00&#39;]
+(#4) [3,13.958580017089844,4.946532249450684,&#39;00:00&#39;]
+(#4) [4,11.093666076660156,2.65022873878479,&#39;00:00&#39;]
 </pre>
 </div>
 </div>
@@ -381,7 +383,7 @@ summary: "Callback and helper function to track progress of training or log resu
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="ShowGraphCallback" class="doc_header"><code>class</code> <code>ShowGraphCallback</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/callback/progress.py#L68" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ShowGraphCallback</code>() :: <a href="/learner#Callback"><code>Callback</code></a></p>
+<h2 id="ShowGraphCallback" class="doc_header"><code>class</code> <code>ShowGraphCallback</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/callback/progress.py#L68" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ShowGraphCallback</code>() :: <a href="/callback_core#Callback"><code>Callback</code></a></p>
 </blockquote>
 <p>Update a graph of training and validation loss</p>
 
@@ -518,9 +520,9 @@ summary: "Callback and helper function to track progress of training or log resu
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="CSVLogger" class="doc_header"><code>class</code> <code>CSVLogger</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/callback/progress.py#L89" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>CSVLogger</code>(<strong><code>fname</code></strong>=<em><code>'history.csv'</code></em>, <strong><code>append</code></strong>=<em><code>False</code></em>) :: <a href="/learner#Callback"><code>Callback</code></a></p>
+<h2 id="CSVLogger" class="doc_header"><code>class</code> <code>CSVLogger</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/callback/progress.py#L89" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>CSVLogger</code>(<strong><code>fname</code></strong>=<em><code>'history.csv'</code></em>, <strong><code>append</code></strong>=<em><code>False</code></em>) :: <a href="/callback_core#Callback"><code>Callback</code></a></p>
 </blockquote>
-<p>Basic class handling tweaks of the training loop by changing a <a href="/learner#Learner"><code>Learner</code></a> in various events</p>
+<p>Basic class handling tweaks of the training loop by changing a <a href="/13a_learner#Learner"><code>Learner</code></a> in various events</p>
 
 </div>
 
@@ -687,6 +689,7 @@ summary: "Callback and helper function to track progress of training or log resu
 </div>
 
 </div>
+    {% endraw %}
 </div>
  
 

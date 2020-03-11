@@ -2,10 +2,10 @@
 
 __all__ = ['UNK', 'PAD', 'BOS', 'EOS', 'FLD', 'TK_REP', 'TK_WREP', 'TK_UP', 'TK_MAJ', 'spec_add_spaces',
            'rm_useless_spaces', 'replace_rep', 'replace_wrep', 'fix_html', 'replace_all_caps', 'replace_maj',
-           'lowercase', 'replace_space', 'BaseTokenizer', 'SpacyTokenizer', 'TokenizeBatch', 'tokenize1',
-           'parallel_tokenize', 'fn_counter_pkl', 'fn_lengths_pkl', 'tokenize_folder', 'read_tokenized_file',
-           'tokenize_files', 'tokenize_df', 'tokenize_csv', 'load_tokenized_csv', 'get_tokenizer', 'Tokenizer',
-           'eu_langs', 'SentencePieceTokenizer']
+           'lowercase', 'replace_space', 'BaseTokenizer', 'SpacyTokenizer', 'WordTokenizer', 'TokenizeBatch',
+           'tokenize1', 'parallel_tokenize', 'fn_counter_pkl', 'fn_lengths_pkl', 'tokenize_folder',
+           'read_tokenized_file', 'tokenize_files', 'tokenize_df', 'tokenize_csv', 'load_tokenized_csv',
+           'get_tokenizer', 'Tokenizer', 'eu_langs', 'SentencePieceTokenizer', 'SubwordTokenizer']
 
 # Cell
 from ..torch_basics import *
@@ -117,6 +117,9 @@ class SpacyTokenizer():
 
     def __call__(self, items):
         return (L(doc).attrgot('text') for doc in self.pipe(items, batch_size=self.buf_sz))
+
+# Cell
+WordTokenizer = SpacyTokenizer
 
 # Cell
 class TokenizeBatch:
@@ -240,39 +243,40 @@ def load_tokenized_csv(fname):
 
 # Cell
 def get_tokenizer(tok_func=SpacyTokenizer, **kwargs):
-    sign = inspect.signature(tok_func)
-    for k in kwargs.keys():
+    sign = str(inspect.signature(tok_func))
+    for k in list(kwargs.keys()):
         if k not in sign: kwargs.pop(k)
     return tok_func(**kwargs)
 
 # Cell
 class Tokenizer(Transform):
     input_types = (str, list, L, tuple, Path)
-    def __init__(self, tokenizer, rules=None, counter=None, lengths=None, mode=None):
-        store_attr(self, 'tokenizer,counter,lengths,mode')
+    def __init__(self, tokenizer, rules=None, counter=None, lengths=None, mode=None, sep=' '):
+        store_attr(self, 'tokenizer,counter,lengths,mode,sep')
         self.rules = defaults.text_proc_rules if rules is None else rules
 
     @classmethod
     @delegates(tokenize_df, keep=True)
-    def from_df(cls, text_cols, tok_func=SpacyTokenizer, **kwargs):
-        res = cls(get_tokenizer(tok_func, **kwargs), mode='df')
-        res.text_cols,res.kwargs,res.train_setup = text_cols,merge({'tok_func': tok_func}, kwargs),False
+    def from_df(cls, text_cols, tok_func=SpacyTokenizer, rules=None, sep=' ', **kwargs):
+        res = cls(get_tokenizer(tok_func, **kwargs), rules=rules, mode='df')
+        res.kwargs,res.train_setup = merge({'tok_func': tok_func}, kwargs),False
+        res.text_cols,res.sep = text_cols,sep
         return res
 
     @classmethod
     @delegates(tokenize_folder, keep=True)
-    def from_folder(cls, path, tok_func=SpacyTokenizer, **kwargs):
+    def from_folder(cls, path, tok_func=SpacyTokenizer, rules=None, **kwargs):
         path = Path(path)
         output_dir = Path(ifnone(kwargs.get('output_dir'), path.parent/f'{path.name}_tok'))
-        if not output_dir.exists(): tokenize_folder(path, **kwargs)
+        if not output_dir.exists(): tokenize_folder(path, rules=rules, **kwargs)
         res = cls(get_tokenizer(tok_func, **kwargs), counter=(output_dir/fn_counter_pkl).load(),
-                  lengths=(output_dir/fn_lengths_pkl).load(), mode='folder')
+                  lengths=(output_dir/fn_lengths_pkl).load(), rules=rules, mode='folder')
         res.path,res.output_dir = path,output_dir
         return res
 
     def setups(self, dsets):
         if not self.mode == 'df' or not isinstance(dsets.items, pd.DataFrame): return
-        dsets.items,count = tokenize_df(dsets.items, self.text_cols, **self.kwargs)
+        dsets.items,count = tokenize_df(dsets.items, self.text_cols, rules=self.rules, **self.kwargs)
         if self.counter is None: self.counter = count
         return dsets
 
@@ -287,8 +291,15 @@ class Tokenizer(Transform):
 
     def get_lengths(self, items):
         if self.lengths is None: return None
-        if self.mode == 'folder': return [self.lengths[str(Path(i).relative_to(self.path))] for i in items]
-        if self.mode == 'df': return items['text_length'].values
+        if self.mode == 'df':
+            if isinstance(items, pd.DataFrame) and 'text_lengths' in items.columns: return items['text_length'].values
+        if self.mode == 'folder':
+            try:
+                res = [self.lengths[str(Path(i).relative_to(self.path))] for i in items]
+                if len(res) == len(items): return res
+            except: return None
+
+    def decodes(self, o): return TitledStr(self.sep.join(o))
 
 # Cell
 eu_langs = ["bg", "cs", "da", "de", "el", "en", "es", "et", "fi", "fr", "ga", "hr", "hu",
@@ -327,21 +338,29 @@ class SentencePieceTokenizer():#TODO: pass the special tokens symbol to sp
         from sentencepiece import SentencePieceTrainer
         vocab_sz = self._get_vocab_sz(raw_text_path) if self.vocab_sz is None else self.vocab_sz
         spec_tokens = ['\u2581'+s for s in self.special_toks]
+        q = '\"'
         SentencePieceTrainer.Train(" ".join([
-            f"--input={raw_text_path} --vocab_size={vocab_sz} --model_prefix={self.cache_dir/'spm'}",
+            f"--input={q}{raw_text_path}{q} --vocab_size={vocab_sz} --model_prefix={q}{self.cache_dir/'spm'}{q}",
             f"--character_coverage={self.char_coverage} --model_type={self.model_type}",
             f"--unk_id={len(spec_tokens)} --pad_id=-1 --bos_id=-1 --eos_id=-1",
             f"--user_defined_symbols={','.join(spec_tokens)}"]))
         raw_text_path.unlink()
         return self.cache_dir/'spm.model'
 
-    def setup(self, items, rules):
+    def setup(self, items, rules=None):
+        from sentencepiece import SentencePieceProcessor
+        if rules is None: rules = []
         if self.tok is not None: return {'sp_model': self.sp_model}
         raw_text_path = self.cache_dir/'texts.out'
         with open(raw_text_path, 'w') as f:
             for t in progress_bar(maps(*rules, items), total=len(items), leave=False):
                 f.write(f'{t}\n')
-        return {'sp_model': self.train(raw_text_path)}
+        sp_model = self.train(raw_text_path)
+        self.tok = SentencePieceProcessor()
+        self.tok.Load(str(sp_model))
 
     def __call__(self, items):
         for t in items: yield self.tok.EncodeAsPieces(t)
+
+# Cell
+SubwordTokenizer = SentencePieceTokenizer
