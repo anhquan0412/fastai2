@@ -2,7 +2,7 @@
 
 __all__ = ['make_date', 'add_datepart', 'add_elapsed_times', 'cont_cat_split', 'Tabular', 'TabularPandas',
            'TabularProc', 'Categorify', 'setups', 'encodes', 'decodes', 'NormalizeTab', 'setups', 'encodes', 'decodes',
-           'FillStrategy', 'FillMissing', 'ReadTabBatch', 'TabDataLoader', 'encodes', 'decodes']
+           'FillStrategy', 'FillMissing', 'ReadTabBatch', 'TabDataLoader', 'encodes', 'decodes', 'setups', 'encodes']
 
 # Cell
 from ..torch_basics import *
@@ -103,9 +103,11 @@ class Tabular(CollBase, GetAttr, FilteredBase):
     "A `DataFrame` wrapper that knows which cols are cont/cat/y, and returns rows in `__getitem__`"
     _default,with_cont='procs',True
     def __init__(self, df, procs=None, cat_names=None, cont_names=None, y_names=None, block_y=None, splits=None,
-                 do_setup=True, device=None):
-        if splits is None: splits=[range_of(df)]
-        df = df.iloc[sum(splits, [])].copy()
+                 do_setup=True, device=None, inplace=False):
+        if inplace and splits is not None:
+            warn("Using inplace with splits will trigger a pandas error. Set `pd.options.mode.chained_assignment=None` to avoid it.")
+        if not inplace: df = df.copy()
+        if splits is not None: df = df.iloc[sum(splits, [])]
         self.dataloaders = delegates(self._dl_type.__init__)(self.dataloaders)
         super().__init__(df)
 
@@ -118,8 +120,8 @@ class Tabular(CollBase, GetAttr, FilteredBase):
         if block_y is not None and do_setup:
             if callable(block_y): block_y = block_y()
             procs = L(procs) + block_y.type_tfms
-        self.cat_names,self.cont_names,self.procs = L(cat_names),L(cont_names),Pipeline(procs, as_item=True)
-        self.split = len(splits[0])
+        self.cat_names,self.cont_names,self.procs = L(cat_names),L(cont_names),Pipeline(procs)
+        self.split = len(df) if splits is None else len(splits[0])
         if do_setup: self.setup()
 
     def new(self, df):
@@ -137,7 +139,6 @@ class Tabular(CollBase, GetAttr, FilteredBase):
     def iloc(self): return _TabIloc(self)
     def targ(self): return self.items[self.y_names]
     def x_names (self): return self.cat_names + self.cont_names
-    def all_col_names (self): return self.x_names + self.y_names
     def n_subsets(self): return 2
     def y(self): return self[self.y_names[0]]
     def new_empty(self): return self.new(pd.DataFrame({}, columns=self.items.columns))
@@ -145,11 +146,17 @@ class Tabular(CollBase, GetAttr, FilteredBase):
         self.device = d
         return self
 
+    def all_col_names (self):
+        ys = [n for n in self.y_names if n in self.items.columns]
+        return self.x_names + self.y_names if len(ys) == len(self.y_names) else self.x_names
+
 properties(Tabular,'loc','iloc','targ','all_col_names','n_subsets','x_names','y')
 
 # Cell
 class TabularPandas(Tabular):
-    def transform(self, cols, f): self[cols] = self[cols].transform(f)
+    def transform(self, cols, f, all_col=True):
+        if not all_col: cols = [c for c in cols if c in self.items.columns]
+        if len(cols) > 0: self[cols] = self[cols].transform(f)
 
 # Cell
 def _add_prop(cls, nm):
@@ -202,12 +209,12 @@ def setups(self, to:Tabular):
 
 @Categorize
 def encodes(self, to:Tabular):
-    to.transform(to.y_names, partial(_apply_cats, {n: self.vocab for n in to.y_names}, 0))
+    to.transform(to.y_names, partial(_apply_cats, {n: self.vocab for n in to.y_names}, 0), all_col=False)
     return to
 
 @Categorize
 def decodes(self, to:Tabular):
-    to.transform(to.y_names, partial(_decode_cats, {n: self.vocab for n in to.y_names}))
+    to.transform(to.y_names, partial(_decode_cats, {n: self.vocab for n in to.y_names}), all_col=False)
     return to
 
 # Cell
@@ -249,13 +256,15 @@ class FillMissing(TabularProc):
         store_attr(self, 'fill_strategy,add_col,fill_vals')
 
     def setups(self, dsets):
+        missing = pd.isnull(dsets.conts).any()
         self.na_dict = {n:self.fill_strategy(dsets[n], self.fill_vals[n])
-                        for n in pd.isnull(dsets.conts).any().keys()}
+                        for n in missing[missing].keys()}
 
     def encodes(self, to):
         missing = pd.isnull(to.conts)
-        for n in missing.any().keys():
+        for n in missing.any()[missing.any()].keys():
             assert n in self.na_dict, f"nan values in `{n}` but not in setup training set"
+        for n in self.na_dict.keys():
             to[n].fillna(self.na_dict[n], inplace=True)
             if self.add_col:
                 to.loc[:,n+'_na'] = missing[n]
@@ -269,15 +278,18 @@ class ReadTabBatch(ItemTransform):
     def __init__(self, to): self.to = to
 
     def encodes(self, to):
-        if not to.with_cont: res = tensor(to.cats).long(), tensor(to.targ)
-        else: res = (tensor(to.cats).long(),tensor(to.conts).float(), tensor(to.targ))
+        if not to.with_cont: res = (tensor(to.cats).long(),)
+        else: res = (tensor(to.cats).long(),tensor(to.conts).float())
+        ys = [n for n in to.y_names if n in to.items.columns]
+        if len(ys) == len(to.y_names): res = res + (tensor(to.targ),)
         if to.device is not None: res = to_device(res, to.device)
         return res
 
     def decodes(self, o):
         o = [_maybe_expand(o_) for o_ in to_np(o) if o_.size != 0]
         vals = np.concatenate(o, axis=1)
-        df = pd.DataFrame(vals, columns=self.to.all_col_names)
+        try: df = pd.DataFrame(vals, columns=self.to.all_col_names)
+        except: df = pd.DataFrame(vals, columns=self.to.x_names)
         to = self.to.new(df)
         return to
 
@@ -306,3 +318,13 @@ def encodes(self, to:Tabular): return to
 def decodes(self, to:Tabular):
     to.transform(to.y_names, lambda c: c==1)
     return to
+
+# Cell
+@RegressionSetup
+def setups(self, to:Tabular):
+    if self.c is not None: return
+    self.c = len(to.y_names)
+    return to
+
+@RegressionSetup
+def encodes(self, to:Tabular): return to

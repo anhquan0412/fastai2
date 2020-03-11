@@ -34,7 +34,7 @@ class TfmdDL(DataLoader):
     "Transformed `DataLoader`"
     def __init__(self, dataset, bs=64, shuffle=False, num_workers=None, verbose=False, do_setup=True, **kwargs):
         if num_workers is None: num_workers = min(16, defaults.cpus)
-        for nm in _batch_tfms: kwargs[nm] = Pipeline(kwargs.get(nm,None), as_item=(nm=='before_batch'))
+        for nm in _batch_tfms: kwargs[nm] = Pipeline(kwargs.get(nm,None))
         super().__init__(dataset, bs=bs, shuffle=shuffle, num_workers=num_workers, **kwargs)
         if do_setup:
             for nm in _batch_tfms:
@@ -105,13 +105,19 @@ class TfmdDL(DataLoader):
         if not hasattr(self, '_n_inp'): self._one_pass()
         return self._n_inp
 
+    def to(self, device):
+        self.device = device
+        for tfm in self.after_batch.fs:
+            for a in L(getattr(tfm, 'parameters', None)): setattr(tfm, a, getattr(tfm, a).to(device))
+        return self
+
 # Cell
 @docs
 class DataLoaders(GetAttr):
     "Basic wrapper around several `DataLoader`s."
     _default='train'
     def __init__(self, *loaders, path='.', device=None):
-        self.loaders,self.path = loaders,Path(path)
+        self.loaders,self.path = L(*loaders),Path(path)
         self.device = device
 
     def __getitem__(self, i): return self.loaders[i]
@@ -119,7 +125,8 @@ class DataLoaders(GetAttr):
         loaders = [dl.new(dl.dataset.new_empty()) for dl in self.loaders]
         return type(self)(*loaders, path=self.path, device=self.device)
 
-    train   ,valid    = add_props(lambda i,x: x[i])
+    def _set(i, self, v): self.loaders[i] = v
+    train   ,valid    = add_props(lambda i,x: x[i], _set)
     train_ds,valid_ds = add_props(lambda i,x: x[i].dataset)
 
     @property
@@ -127,19 +134,22 @@ class DataLoaders(GetAttr):
 
     @device.setter
     def device(self, d):
-        for dl in self.loaders: dl.device = d
+        for dl in self.loaders: dl.to(d)
         self._device = d
 
-    def cuda(self, device=None):
-        self.device = default_device() if device is None else device
+    def to(self, device):
+        self.device = device
         return self
 
-    def cpu(self): return self.cuda(device=torch.device('cpu'))
+    def cuda(self): return self.to(device=default_device())
+    def cpu(self):  return self.to(device=torch.device('cpu'))
 
     @classmethod
     def from_dsets(cls, *ds, path='.',  bs=64, device=None, dl_type=TfmdDL, **kwargs):
         default = (True,) + (False,) * (len(ds)-1)
         defaults = {'shuffle': default, 'drop_last': default}
+        for nm in _batch_tfms:
+            if nm in kwargs: kwargs[nm] = Pipeline(kwargs[nm])
         kwargs = merge(defaults, {k: tuplify(v, match=ds) for k,v in kwargs.items()})
         kwargs = [{k: v[i] for k,v in kwargs.items()} for i in range_of(ds)]
         return cls(*[dl_type(d, **k) for d,k in zip(ds, kwargs)], path=path, device=device)
@@ -153,7 +163,8 @@ class DataLoaders(GetAttr):
                valid="Validation `DataLoader`",
                train_ds="Training `Dataset`",
                valid_ds="Validation `Dataset`",
-               cuda="Use `device` (defaults to `default_device()`)",
+               to="Use `device`",
+               cuda="Use the gpu if available",
                cpu="Use the cpu",
                new_empty="Create a new empty version of `self` with the same transforms",
                from_dblock="Create a dataloaders from a given `dblock`")
@@ -189,13 +200,13 @@ FilteredBase.train,FilteredBase.valid = add_props(lambda i,x: x.subset(i))
 class TfmdLists(FilteredBase, L, GetAttr):
     "A `Pipeline` of `tfms` applied to a collection of `items`"
     _default='tfms'
-    def __init__(self, items, tfms, use_list=None, do_setup=True, as_item=True, split_idx=None, train_setup=True,
+    def __init__(self, items, tfms, use_list=None, do_setup=True, split_idx=None, train_setup=True,
                  splits=None, types=None, verbose=False):
         super().__init__(items, use_list=use_list)
         self.splits = L([slice(None),[]] if splits is None else splits).map(mask2idxs)
         if isinstance(tfms,TfmdLists): tfms = tfms.tfms
         if isinstance(tfms,Pipeline): do_setup=False
-        self.tfms = Pipeline(tfms, as_item=as_item, split_idx=split_idx)
+        self.tfms = Pipeline(tfms, split_idx=split_idx)
         self.types = types
         if do_setup:
             pv(f"Setting up {self.tfms}", verbose)
@@ -210,6 +221,7 @@ class TfmdLists(FilteredBase, L, GetAttr):
     def decode(self, o, **kwargs): return self.tfms.decode(o, **kwargs)
     def __call__(self, o, **kwargs): return self.tfms.__call__(o, **kwargs)
     def overlapping_splits(self): return L(Counter(self.splits.concat()).values()).filter(gt(1))
+    def new_empty(self): return self._new([])
 
     def setup(self, train_setup=True):
         self.tfms.setup(self, train_setup)
@@ -274,6 +286,7 @@ class Datasets(FilteredBase):
     def subset(self, i): return type(self)(tls=L(tl.subset(i) for tl in self.tls), n_inp=self.n_inp)
     def _new(self, items, *args, **kwargs): return super()._new(items, tfms=self.tfms, do_setup=False, **kwargs)
     def overlapping_splits(self): return self.tls[0].overlapping_splits()
+    def new_empty(self): return type(self)(tls=[tl.new_empty() for tl in self.tls], n_inp=self.n_inp)
     @property
     def splits(self): return self.tls[0].splits
     @property
@@ -287,10 +300,6 @@ class Datasets(FilteredBase):
     def show(self, o, ctx=None, **kwargs):
         for o_,tl in zip(o,self.tls): ctx = tl.show(o_, ctx=ctx, **kwargs)
         return ctx
-
-    def new_empty(self):
-        tls = [tl._new([], split_idx=tl.split_idx) for tl in self.tls]
-        return type(self)(tls=tls, n_inp=self.n_inp)
 
     @contextmanager
     def set_split_idx(self, i):
@@ -310,18 +319,27 @@ class Datasets(FilteredBase):
     )
 
 # Cell
-def test_set(dsets, test_items, rm_tfms=None):
+def test_set(dsets, test_items, rm_tfms=None, with_labels=False):
     "Create a test set from `test_items` using validation transforms of `dsets`"
-    test_tls = [tl._new(test_items, split_idx=1) for tl in dsets.tls[:dsets.n_inp]]
-    if rm_tfms is None: rm_tfms = [tl.infer_idx(test_items[0]) for tl in test_tls]
-    else:               rm_tfms = tuplify(rm_tfms, match=test_tls)
-    for i,j in enumerate(rm_tfms): test_tls[i].tfms.fs = test_tls[i].tfms.fs[j:]
-    return Datasets(tls=test_tls)
+    if isinstance(dsets, Datasets):
+        tls = dsets.tls if with_labels else dsets.tls[:dsets.n_inp]
+        test_tls = [tl._new(test_items, split_idx=1) for tl in tls]
+        if rm_tfms is None: rm_tfms = [tl.infer_idx(get_first(test_items)) for tl in test_tls]
+        else:               rm_tfms = tuplify(rm_tfms, match=test_tls)
+        for i,j in enumerate(rm_tfms): test_tls[i].tfms.fs = test_tls[i].tfms.fs[j:]
+        return Datasets(tls=test_tls)
+    elif isinstance(dsets, TfmdLists):
+        test_tl = dsets._new(test_items, split_idx=1)
+        if rm_tfms is None: rm_tfms = dsets.infer_idx(get_first(test_items))
+        test_tl.tfms.fs = test_tl.tfms.fs[rm_tfms:]
+        return test_tl
+    else: raise Exception(f"This method requires using the fastai library to assemble your data. Expected a `Datasets` or a `TfmdLists` but got {dsets.__class__.__name__}")
 
 # Cell
 @delegates(TfmdDL.__init__)
 @patch
-def test_dl(self:DataLoaders, test_items, rm_type_tfms=None, **kwargs):
+def test_dl(self:DataLoaders, test_items, rm_type_tfms=None, with_labels=False, **kwargs):
     "Create a test dataloader from `test_items` using validation transforms of `dls`"
-    test_ds = test_set(self.valid_ds, test_items, rm_tfms=rm_type_tfms) if isinstance(self.valid_ds, Datasets) else test_items
+    test_ds = test_set(self.valid_ds, test_items, rm_tfms=rm_type_tfms, with_labels=with_labels
+                      ) if isinstance(self.valid_ds, (Datasets, TfmdLists)) else test_items
     return self.valid.new(test_ds, **kwargs)

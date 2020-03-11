@@ -6,7 +6,7 @@
     "Vision tutorial": "/tutorial.transfer_learning",
     "Pets tutorial": "/tutorial.pets",
     "Imagenette tutorial": "/tutorial.imagenette",
-    "Data block examples": "/databloc.examples",
+    "Data block examples": "/datablock_examples",
     "UlMFiT tutorial": "/tutorial.ulmfit",
     "Wikitext tutorial": "/tutorial.wikitext"
   },
@@ -14,14 +14,18 @@
     "Training loop": "/learner",
     "Optimizer": "/optimizer",
     "Metrics": "/metrics",
+    "Interpretation": "/interpret",
+    "Distributed": "/distributed",
     "": {
       "Callbacks": {
+        "Core": "/callback.core",
         "Schedulers": "/callback.schedule",
         "Hooks and callbacks": "/callback.hook",
         "Mixed precision": "/callback.fp16",
         "Mixup": "/callback.mixup",
         "Trackers": "/callback.tracker",
         "RNN": "/callback.rnn",
+        "Data": "/callback.data",
         "Progress": "/callback.progress"
       }
     }
@@ -38,12 +42,16 @@
     "Layers": "/layers"
   },
   "Vision": {
-    "Vision Core": "/vision.core",
     "Vision Learner": "/vision.learner",
     "Vision Data Augmentation": "/vision.augment",
+    "Vision Data": "/vision.data",
+    "Vision Core": "/vision.core",
+    "Vision Utils": "/vision.utils",
+    "Vision Widgets": "/vision.widgets",
     "": {
       "Models": {
-        "XResnet": "/vision.models.xresnet"
+        "XResnet": "/vision.models.xresnet",
+        "Unet": "/vision.models.unet"
       }
     }
   },
@@ -61,8 +69,10 @@
   },
   "Tabular": {
     "Tabular Core": "/tabular.core",
+    "Tabular Data": "/tabular.data",
+    "Tabular Learner": "/tabular.learner",
     "Tabular Model": "/tabular.model",
-    "RapidsAI": "/tabular.rapids"
+    "Collab": "/collab"
   },
   "Medical": {
     "Medical imagery": "/medical.imaging",
