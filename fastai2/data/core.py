@@ -46,7 +46,7 @@ class TfmdDL(DataLoader):
         if self.device is not None: b = to_device(b, self.device)
         its = self.after_batch(b)
         self._n_inp = 1 if not isinstance(its, (list,tuple)) or len(its)==1 else len(its)-1
-        self._types = mapped(type,its)
+        self._types = explode_types(its)
 
     def _retain_dl(self,b):
         if not getattr(self, '_types', None): self._one_pass()
@@ -93,7 +93,7 @@ class TfmdDL(DataLoader):
 
     def show_results(self, b, out, max_n=9, ctxs=None, show=True, **kwargs):
         x,y,its = self.show_batch(b, max_n=max_n, show=False)
-        b_out = b[:self.n_inp] + (tuple(out) if is_listy(out) else (out,))
+        b_out = type(b)(b[:self.n_inp] + (tuple(out) if is_listy(out) else (out,)))
         x1,y1,outs = self.show_batch(b_out, max_n=max_n, show=False)
         res = (x,x1,None,None) if its is None else (x, y, its, outs.itemgot(slice(self.n_inp,None)))
         if not show: return res
@@ -117,7 +117,7 @@ class DataLoaders(GetAttr):
     "Basic wrapper around several `DataLoader`s."
     _default='train'
     def __init__(self, *loaders, path='.', device=None):
-        self.loaders,self.path = L(*loaders),Path(path)
+        self.loaders,self.path = list(loaders),Path(path)
         self.device = device
 
     def __getitem__(self, i): return self.loaders[i]
@@ -183,12 +183,13 @@ class FilteredBase:
     def _new(self, items, **kwargs): return super()._new(items, splits=self.splits, **kwargs)
     def subset(self): raise NotImplemented
 
-    def dataloaders(self, bs=64, val_bs=None, shuffle_train=True, n=None, path='.', dl_type=None, dl_kwargs=None, device=None,
-                  **kwargs):
+    def dataloaders(self, bs=64, val_bs=None, shuffle_train=True, n=None, path='.', dl_type=None, dl_kwargs=None,
+                    device=None, **kwargs):
         if device is None: device=default_device()
         if dl_kwargs is None: dl_kwargs = [{}] * self.n_subsets
         if dl_type is None: dl_type = self._dl_type
-        dl = dl_type(self.subset(0), bs=bs, shuffle=shuffle_train, drop_last=shuffle_train, n=n, device=device,
+        drop_last = kwargs.pop('drop_last', shuffle_train)
+        dl = dl_type(self.subset(0), bs=bs, shuffle=shuffle_train, drop_last=drop_last, n=n, device=device,
                      **merge(kwargs, dl_kwargs[0]))
         dls = [dl] + [dl.new(self.subset(i), bs=(bs if val_bs is None else val_bs), shuffle=False, drop_last=False,
                              n=None, **dl_kwargs[i]) for i in range(1, self.n_subsets)]
