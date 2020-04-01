@@ -52,7 +52,8 @@ class ProgressCallback(Callback):
                  after_batch="Update the current progress bar",
                  after_fit="Close the master bar")
 
-defaults.callbacks = [TrainEvalCallback, Recorder, ProgressCallback]
+if not hasattr(defaults, 'callbacks'): defaults.callbacks = [TrainEvalCallback, Recorder, ProgressCallback]
+elif ProgressCallback not in defaults.callbacks: defaults.callbacks.append(ProgressCallback)
 
 # Cell
 @patch
@@ -67,7 +68,7 @@ def no_bar(self:Learner):
 # Cell
 class ShowGraphCallback(Callback):
     "Update a graph of training and validation loss"
-    run_after=ProgressCallback
+    run_after,run_valid=ProgressCallback,False
 
     def begin_fit(self):
         self.run = not hasattr(self.learn, 'lr_finder') and not hasattr(self, "gather_preds")

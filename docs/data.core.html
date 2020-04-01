@@ -19,14 +19,23 @@ description: "Core functionality for gathering data"
 -->
 
 <div class="container" id="notebook-container">
-    {% raw %}
         
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -40,6 +49,8 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>The classes here provide functionality for applying a list of transforms to a set of items (<a href="/data.core#TfmdLists"><code>TfmdLists</code></a>, <a href="/data.core#Datasets"><code>Datasets</code></a>) or a <a href="/data.load#DataLoader"><code>DataLoader</code></a> (<code>TfmdDl</code>) as well as the base class used to gather the data for model training: <a href="/data.core#DataLoaders"><code>DataLoaders</code></a>.</p>
@@ -47,9 +58,13 @@ description: "Core functionality for gathering data"
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><code>show_batch</code> is a type-dispatched function that is responsible for showing decoded <code>samples</code>. <code>x</code> and <code>y</code> are the input and the target in the batch to be shown, and are passed along to dispatch on their types. There is a different implementation of <code>show_batch</code> if <code>x</code> is a <a href="/torch_core#TensorImage"><code>TensorImage</code></a> or a <a href="/text.data#TensorText"><code>TensorText</code></a> for instance (see vision.core or text.data for more details). <code>ctxs</code> can be passed but the function is responsible to create them if necessary. <code>kwargs</code> depend on the specific implementation.</p>
@@ -57,9 +72,13 @@ description: "Core functionality for gathering data"
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><code>show_results</code> is a type-dispatched function that is responsible for showing decoded <code>samples</code> and their corresponding <code>outs</code>. Like in <code>show_batch</code>, <code>x</code> and <code>y</code> are the input and the target in the batch to be shown, and are passed along to dispatch on their types. <code>ctxs</code> can be passed but the function is responsible to create them if necessary. <code>kwargs</code> depend on the specific implementation.</p>
@@ -67,15 +86,29 @@ description: "Core functionality for gathering data"
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -97,13 +130,17 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>A <a href="/data.core#TfmdDL"><code>TfmdDL</code></a> is a <a href="/data.load#DataLoader"><code>DataLoader</code></a> that creates <a href="https://fastcore.fast.ai/transform#Pipeline"><code>Pipeline</code></a> from a list of <a href="https://fastcore.fast.ai/transform#Transform"><code>Transform</code></a>s for the callbacks <code>after_item</code>, <code>before_batch</code> and <code>after_batch</code>. As a result, it can decode or show a processed <code>batch</code>.</p>
+<p>A <a href="/data.core#TfmdDL"><code>TfmdDL</code></a> is a <a href="/data.load#DataLoader"><code>DataLoader</code></a> that creates <code>Pipeline</code> from a list of <code>Transform</code>s for the callbacks <code>after_item</code>, <code>before_batch</code> and <code>after_batch</code>. As a result, it can decode or show a processed <code>batch</code>.</p>
 
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -124,6 +161,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -137,6 +178,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -159,6 +204,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -180,6 +229,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -199,6 +252,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -216,6 +273,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -237,12 +298,16 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h3 id="Methods">Methods<a class="anchor-link" href="#Methods"> </a></h3>
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -263,6 +328,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -277,6 +346,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -291,6 +364,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -311,6 +388,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -324,6 +405,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -344,6 +429,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -357,6 +446,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -377,6 +470,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -397,9 +494,17 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -409,7 +514,7 @@ description: "Core functionality for gathering data"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="DataLoaders" class="doc_header"><code>class</code> <code>DataLoaders</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L116" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>DataLoaders</code>(<strong>*<code>loaders</code></strong>, <strong><code>path</code></strong>=<em><code>'.'</code></em>, <strong><code>device</code></strong>=<em><code>None</code></em>) :: <a href="https://fastcore.fast.ai/foundation#GetAttr"><code>GetAttr</code></a></p>
+<h2 id="DataLoaders" class="doc_header"><code>class</code> <code>DataLoaders</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L116" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>DataLoaders</code>(<strong>*<code>loaders</code></strong>, <strong><code>path</code></strong>=<em><code>'.'</code></em>, <strong><code>device</code></strong>=<em><code>None</code></em>) :: <code>GetAttr</code></p>
 </blockquote>
 <p>Basic wrapper around several <a href="/data.load#DataLoader"><code>DataLoader</code></a>s.</p>
 
@@ -421,6 +526,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -439,12 +548,16 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h3 id="Methods">Methods<a class="anchor-link" href="#Methods"> </a></h3>
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -466,6 +579,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -480,6 +597,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -499,6 +620,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -518,6 +643,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -537,6 +666,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -556,9 +689,17 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -580,9 +721,17 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -594,7 +743,7 @@ description: "Core functionality for gathering data"
 <div class="output_markdown rendered_html output_subarea ">
 <h2 id="TfmdLists" class="doc_header"><code>class</code> <code>TfmdLists</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L201" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>TfmdLists</code>(<strong><code>items</code></strong>, <strong><code>tfms</code></strong>, <strong><code>use_list</code></strong>=<em><code>None</code></em>, <strong><code>do_setup</code></strong>=<em><code>True</code></em>, <strong><code>split_idx</code></strong>=<em><code>None</code></em>, <strong><code>train_setup</code></strong>=<em><code>True</code></em>, <strong><code>splits</code></strong>=<em><code>None</code></em>, <strong><code>types</code></strong>=<em><code>None</code></em>, <strong><code>verbose</code></strong>=<em><code>False</code></em>) :: <a href="/data.core#FilteredBase"><code>FilteredBase</code></a></p>
 </blockquote>
-<p>A <a href="https://fastcore.fast.ai/transform#Pipeline"><code>Pipeline</code></a> of <code>tfms</code> applied to a collection of <code>items</code></p>
+<p>A <code>Pipeline</code> of <code>tfms</code> applied to a collection of <code>items</code></p>
 
 </div>
 
@@ -604,6 +753,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -625,6 +778,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -640,6 +797,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -649,7 +810,7 @@ description: "Core functionality for gathering data"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="decode_at" class="doc_header"><code>decode_at</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L258" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>decode_at</code>(<strong><code>o</code></strong>, <strong><code>idx</code></strong>)</p>
+<h4 id="decode_at" class="doc_header"><code>decode_at</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L260" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>decode_at</code>(<strong><code>o</code></strong>, <strong><code>idx</code></strong>)</p>
 </blockquote>
 <p>Decoded item at <code>idx</code></p>
 
@@ -661,6 +822,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -676,6 +841,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -685,7 +854,7 @@ description: "Core functionality for gathering data"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="show_at" class="doc_header"><code>show_at</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L263" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>show_at</code>(<strong><code>o</code></strong>, <strong><code>idx</code></strong>, <strong>**<code>kwargs</code></strong>)</p>
+<h4 id="show_at" class="doc_header"><code>show_at</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L265" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>show_at</code>(<strong><code>o</code></strong>, <strong><code>idx</code></strong>, <strong>**<code>kwargs</code></strong>)</p>
 </blockquote>
 
 </div>
@@ -696,13 +865,17 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>A <a href="/data.core#TfmdLists"><code>TfmdLists</code></a> combines a collection of object with a <a href="https://fastcore.fast.ai/transform#Pipeline"><code>Pipeline</code></a>. <code>tfms</code> can either be a <a href="https://fastcore.fast.ai/transform#Pipeline"><code>Pipeline</code></a> or a list of transforms, in which case, it will wrap them in a <a href="https://fastcore.fast.ai/transform#Pipeline"><code>Pipeline</code></a>. <code>use_list</code> is passed along to <a href="https://fastcore.fast.ai/foundation#L"><code>L</code></a> with the <code>items</code> and <code>split_idx</code> are passed to each transform of the <a href="https://fastcore.fast.ai/transform#Pipeline"><code>Pipeline</code></a>. <code>do_setup</code> indicates if the <a href="https://fastcore.fast.ai/transform#Pipeline.setup"><code>Pipeline.setup</code></a> method should be called during initialization.</p>
+<p>A <a href="/data.core#TfmdLists"><code>TfmdLists</code></a> combines a collection of object with a <code>Pipeline</code>. <code>tfms</code> can either be a <code>Pipeline</code> or a list of transforms, in which case, it will wrap them in a <code>Pipeline</code>. <code>use_list</code> is passed along to <code>L</code> with the <code>items</code> and <code>split_idx</code> are passed to each transform of the <code>Pipeline</code>. <code>do_setup</code> indicates if the <code>Pipeline.setup</code> method should be called during initialization.</p>
 
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -722,6 +895,10 @@ description: "Core functionality for gathering data"
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -759,6 +936,10 @@ tfms - (#2) [_neg: (object,object) -&gt; _neg (object,object) -&gt; _neg,_IntFlo
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -774,6 +955,8 @@ tfms - (#2) [_neg: (object,object) -&gt; _neg (object,object) -&gt; _neg,_IntFlo
 <span class="n">test_eq</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">valid</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="n">items</span><span class="p">[</span><span class="n">splits</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
 <span class="n">test_eq</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">tfms</span><span class="o">.</span><span class="n">split_idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 <span class="n">test_eq</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">valid</span><span class="o">.</span><span class="n">tfms</span><span class="o">.</span><span class="n">split_idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">test_eq</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">new_empty</span><span class="p">()</span><span class="o">.</span><span class="n">split_idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">test_eq</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">valid</span><span class="o">.</span><span class="n">new_empty</span><span class="p">()</span><span class="o">.</span><span class="n">split_idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">test_eq_type</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">splits</span><span class="p">,</span> <span class="n">L</span><span class="p">(</span><span class="n">splits</span><span class="p">))</span>
 <span class="k">assert</span> <span class="ow">not</span> <span class="n">tl</span><span class="o">.</span><span class="n">overlapping_splits</span><span class="p">()</span>
 </pre></div>
@@ -783,6 +966,10 @@ tfms - (#2) [_neg: (object,object) -&gt; _neg (object,object) -&gt; _neg,_IntFlo
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -802,6 +989,10 @@ tfms - (#2) [_neg: (object,object) -&gt; _neg (object,object) -&gt; _neg,_IntFlo
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -840,6 +1031,8 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Here's how we can use <a href="/data.core#TfmdLists.setup"><code>TfmdLists.setup</code></a> to implement a simple category list, getting labels from a mock file list:</p>
@@ -847,6 +1040,8 @@ tfms - (#0) []
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -877,6 +1072,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -892,6 +1091,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -915,6 +1118,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -933,6 +1140,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -942,7 +1153,7 @@ tfms - (#0) []
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="TfmdLists.subset" class="doc_header"><code>TfmdLists.subset</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L217" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>TfmdLists.subset</code>(<strong><code>i</code></strong>)</p>
+<h4 id="TfmdLists.subset" class="doc_header"><code>TfmdLists.subset</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L219" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>TfmdLists.subset</code>(<strong><code>i</code></strong>)</p>
 </blockquote>
 
 </div>
@@ -953,6 +1164,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -962,7 +1177,7 @@ tfms - (#0) []
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="TfmdLists.infer_idx" class="doc_header"><code>TfmdLists.infer_idx</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L239" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>TfmdLists.infer_idx</code>(<strong><code>x</code></strong>)</p>
+<h4 id="TfmdLists.infer_idx" class="doc_header"><code>TfmdLists.infer_idx</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L241" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>TfmdLists.infer_idx</code>(<strong><code>x</code></strong>)</p>
 </blockquote>
 
 </div>
@@ -973,6 +1188,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -982,7 +1201,7 @@ tfms - (#0) []
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="TfmdLists.infer" class="doc_header"><code>TfmdLists.infer</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L249" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>TfmdLists.infer</code>(<strong><code>x</code></strong>)</p>
+<h4 id="TfmdLists.infer" class="doc_header"><code>TfmdLists.infer</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L251" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>TfmdLists.infer</code>(<strong><code>x</code></strong>)</p>
 </blockquote>
 
 </div>
@@ -993,6 +1212,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1010,6 +1233,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1030,9 +1257,17 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -1042,7 +1277,7 @@ tfms - (#0) []
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="Datasets" class="doc_header"><code>class</code> <code>Datasets</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L270" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>Datasets</code>(<strong><code>items</code></strong>=<em><code>None</code></em>, <strong><code>tfms</code></strong>=<em><code>None</code></em>, <strong><code>tls</code></strong>=<em><code>None</code></em>, <strong><code>n_inp</code></strong>=<em><code>None</code></em>, <strong><code>dl_type</code></strong>=<em><code>None</code></em>, <strong><code>use_list</code></strong>=<em><code>None</code></em>, <strong><code>do_setup</code></strong>=<em><code>True</code></em>, <strong><code>split_idx</code></strong>=<em><code>None</code></em>, <strong><code>train_setup</code></strong>=<em><code>True</code></em>, <strong><code>splits</code></strong>=<em><code>None</code></em>, <strong><code>types</code></strong>=<em><code>None</code></em>, <strong><code>verbose</code></strong>=<em><code>False</code></em>) :: <a href="/data.core#FilteredBase"><code>FilteredBase</code></a></p>
+<h2 id="Datasets" class="doc_header"><code>class</code> <code>Datasets</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L272" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>Datasets</code>(<strong><code>items</code></strong>=<em><code>None</code></em>, <strong><code>tfms</code></strong>=<em><code>None</code></em>, <strong><code>tls</code></strong>=<em><code>None</code></em>, <strong><code>n_inp</code></strong>=<em><code>None</code></em>, <strong><code>dl_type</code></strong>=<em><code>None</code></em>, <strong><code>use_list</code></strong>=<em><code>None</code></em>, <strong><code>do_setup</code></strong>=<em><code>True</code></em>, <strong><code>split_idx</code></strong>=<em><code>None</code></em>, <strong><code>train_setup</code></strong>=<em><code>True</code></em>, <strong><code>splits</code></strong>=<em><code>None</code></em>, <strong><code>types</code></strong>=<em><code>None</code></em>, <strong><code>verbose</code></strong>=<em><code>False</code></em>) :: <a href="/data.core#FilteredBase"><code>FilteredBase</code></a></p>
 </blockquote>
 <p>A dataset that creates a tuple from each <code>tfms</code>, passed thru <code>item_tfms</code></p>
 
@@ -1054,14 +1289,18 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>A <a href="/data.core#Datasets"><code>Datasets</code></a> creates a tuple from <code>items</code> (typically input,target) by applying to them each list of <a href="https://fastcore.fast.ai/transform#Transform"><code>Transform</code></a> (or <a href="https://fastcore.fast.ai/transform#Pipeline"><code>Pipeline</code></a>) in <code>tfms</code>. Note that if <code>tfms</code> contains only one list of <code>tfms</code>, the items given by <a href="/data.core#Datasets"><code>Datasets</code></a> will be tuples of one element.</p>
+<p>A <a href="/data.core#Datasets"><code>Datasets</code></a> creates a tuple from <code>items</code> (typically input,target) by applying to them each list of <code>Transform</code> (or <code>Pipeline</code>) in <code>tfms</code>. Note that if <code>tfms</code> contains only one list of <code>tfms</code>, the items given by <a href="/data.core#Datasets"><code>Datasets</code></a> will be tuples of one element.</p>
 <p><code>n_inp</code> is the number of elements in the tuples that should be considered part of the input and will default to 1 if <code>tfms</code> consists of one set of transforms, <code>len(tfms)-1</code> otherwise. In most cases, the number of elements in the tuples spit out by <a href="/data.core#Datasets"><code>Datasets</code></a> will be 2 (for input,target) but it can happen that there is 3 (Siamese networks or tabular data) in which case we need to be able to determine when the inputs end and the targets begin.</p>
 
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1097,6 +1336,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1115,6 +1358,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1141,6 +1388,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1160,6 +1411,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1179,6 +1434,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1197,6 +1456,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1217,6 +1480,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1255,6 +1522,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1273,6 +1544,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1292,6 +1567,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1309,6 +1588,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1342,6 +1625,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1359,6 +1646,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1374,6 +1665,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1392,6 +1687,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1410,6 +1709,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1432,12 +1735,16 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h3 id="Methods">Methods<a class="anchor-link" href="#Methods"> </a></h3>
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1452,6 +1759,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -1473,6 +1784,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -1482,7 +1797,7 @@ tfms - (#0) []
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="Datasets.decode" class="doc_header"><code>Datasets.decode</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L286" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>Datasets.decode</code>(<strong><code>o</code></strong>, <strong><code>full</code></strong>=<em><code>True</code></em>)</p>
+<h4 id="Datasets.decode" class="doc_header"><code>Datasets.decode</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L288" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>Datasets.decode</code>(<strong><code>o</code></strong>, <strong><code>full</code></strong>=<em><code>True</code></em>)</p>
 </blockquote>
 <p>Compose <code>decode</code> of all <code>tuple_tfms</code> then all <code>tfms</code> on <code>i</code></p>
 
@@ -1494,6 +1809,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1508,6 +1827,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -1517,7 +1840,7 @@ tfms - (#0) []
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="Datasets.show" class="doc_header"><code>Datasets.show</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L301" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>Datasets.show</code>(<strong><code>o</code></strong>, <strong><code>ctx</code></strong>=<em><code>None</code></em>, <strong>**<code>kwargs</code></strong>)</p>
+<h4 id="Datasets.show" class="doc_header"><code>Datasets.show</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L303" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>Datasets.show</code>(<strong><code>o</code></strong>, <strong><code>ctx</code></strong>=<em><code>None</code></em>, <strong>**<code>kwargs</code></strong>)</p>
 </blockquote>
 <p>Show item <code>o</code> in <code>ctx</code></p>
 
@@ -1529,6 +1852,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1542,6 +1869,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -1551,7 +1882,7 @@ tfms - (#0) []
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="Datasets.new_empty" class="doc_header"><code>Datasets.new_empty</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L290" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>Datasets.new_empty</code>()</p>
+<h4 id="Datasets.new_empty" class="doc_header"><code>Datasets.new_empty</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L292" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>Datasets.new_empty</code>()</p>
 </blockquote>
 <p>Create a new empty version of the <code>self</code>, keeping only the transforms</p>
 
@@ -1563,6 +1894,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1580,12 +1915,16 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Add-test-set-for-inference">Add test set for inference<a class="anchor-link" href="#Add-test-set-for-inference"> </a></h2>
 </div>
 </div>
 </div>
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1606,9 +1945,17 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -1618,7 +1965,7 @@ tfms - (#0) []
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="test_set" class="doc_header"><code>test_set</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L323" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>test_set</code>(<strong><code>dsets</code></strong>, <strong><code>test_items</code></strong>, <strong><code>rm_tfms</code></strong>=<em><code>None</code></em>, <strong><code>with_labels</code></strong>=<em><code>False</code></em>)</p>
+<h4 id="test_set" class="doc_header"><code>test_set</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L325" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>test_set</code>(<strong><code>dsets</code></strong>, <strong><code>test_items</code></strong>, <strong><code>rm_tfms</code></strong>=<em><code>None</code></em>, <strong><code>with_labels</code></strong>=<em><code>False</code></em>)</p>
 </blockquote>
 <p>Create a test set from <code>test_items</code> using validation transforms of <code>dsets</code></p>
 
@@ -1630,6 +1977,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1653,9 +2004,17 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 
 <div class="output_wrapper">
@@ -1665,7 +2024,7 @@ tfms - (#0) []
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="DataLoaders.test_dl" class="doc_header"><code>DataLoaders.test_dl</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L340" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>DataLoaders.test_dl</code>(<strong><code>test_items</code></strong>, <strong><code>rm_type_tfms</code></strong>=<em><code>None</code></em>, <strong><code>with_labels</code></strong>=<em><code>False</code></em>, <strong>**<code>kwargs</code></strong>)</p>
+<h4 id="DataLoaders.test_dl" class="doc_header"><code>DataLoaders.test_dl</code><a href="https://github.com/fastai/fastai2/tree/master/fastai2/data/core.py#L342" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>DataLoaders.test_dl</code>(<strong><code>test_items</code></strong>, <strong><code>rm_type_tfms</code></strong>=<em><code>None</code></em>, <strong><code>with_labels</code></strong>=<em><code>False</code></em>, <strong>**<code>kwargs</code></strong>)</p>
 </blockquote>
 <p>Create a test dataloader from <code>test_items</code> using validation transforms of <code>dls</code></p>
 
@@ -1677,6 +2036,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1691,6 +2054,10 @@ tfms - (#0) []
 </div>
 
 </div>
+    {% endraw %}
+
+    {% raw %}
+    
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 
@@ -1712,6 +2079,7 @@ tfms - (#0) []
 
 </div>
     {% endraw %}
+
 </div>
  
 
