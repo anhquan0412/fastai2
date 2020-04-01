@@ -86,10 +86,14 @@ class TfmdDL(DataLoader):
         if not is_listy(b): b,its = [b],L((o,) for o in its)
         return detuplify(b[:self.n_inp]),detuplify(b[self.n_inp:]),its
 
-    def show_batch(self, b=None, max_n=9, ctxs=None, show=True, **kwargs):
+    def show_batch(self, b=None, max_n=9, ctxs=None, show=True, unique=False, **kwargs):
+        if unique:
+            old_get_idxs = self.get_idxs
+            self.get_idxs = lambda: Inf.zeros
         if b is None: b = self.one_batch()
         if not show: return self._pre_show_batch(b, max_n=max_n)
         show_batch(*self._pre_show_batch(b, max_n=max_n), ctxs=ctxs, max_n=max_n, **kwargs)
+        if unique: self.get_idxs = old_get_idxs
 
     def show_results(self, b, out, max_n=9, ctxs=None, show=True, **kwargs):
         x,y,its = self.show_batch(b, max_n=max_n, show=False)
@@ -208,12 +212,14 @@ class TfmdLists(FilteredBase, L, GetAttr):
         if isinstance(tfms,TfmdLists): tfms = tfms.tfms
         if isinstance(tfms,Pipeline): do_setup=False
         self.tfms = Pipeline(tfms, split_idx=split_idx)
-        self.types = types
+        store_attr(self, 'types,split_idx')
         if do_setup:
             pv(f"Setting up {self.tfms}", verbose)
             self.setup(train_setup=train_setup)
 
-    def _new(self, items, **kwargs): return super()._new(items, tfms=self.tfms, do_setup=False, types=self.types, **kwargs)
+    def _new(self, items, split_idx=None, **kwargs):
+        split_idx = ifnone(split_idx,self.split_idx)
+        return super()._new(items, tfms=self.tfms, do_setup=False, types=self.types, split_idx=split_idx, **kwargs)
     def subset(self, i): return self._new(self._get(self.splits[i]), split_idx=i)
     def _after_item(self, o): return self.tfms(o)
     def __repr__(self): return f"{self.__class__.__name__}: {self.items}\ntfms - {self.tfms.fs}"
@@ -272,7 +278,7 @@ class Datasets(FilteredBase):
     def __init__(self, items=None, tfms=None, tls=None, n_inp=None, dl_type=None, **kwargs):
         super().__init__(dl_type=dl_type)
         self.tls = L(tls if tls else [TfmdLists(items, t, **kwargs) for t in L(ifnone(tfms,[None]))])
-        self.n_inp = (1 if len(self.tls)==1 else len(self.tls)-1) if n_inp is None else n_inp
+        self.n_inp = ifnone(n_inp, max(1, len(self.tls)-1))
 
     def __getitem__(self, it):
         res = tuple([tl[it] for tl in self.tls])

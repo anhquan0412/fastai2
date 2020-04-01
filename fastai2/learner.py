@@ -2,7 +2,7 @@
 
 __all__ = ['CancelFitException', 'CancelEpochException', 'CancelTrainException', 'CancelValidException',
            'CancelBatchException', 'replacing_yield', 'mk_metric', 'save_model', 'load_model', 'Learner', 'Metric',
-           'AvgMetric', 'AvgLoss', 'AvgSmoothLoss', 'ValueMetric', 'Recorder', 'FetchPreds', 'load_learner']
+           'AvgMetric', 'AvgLoss', 'AvgSmoothLoss', 'ValueMetric', 'Recorder', 'load_learner']
 
 # Cell
 from .data.all import *
@@ -81,7 +81,7 @@ class Learner():
             loss_func = getattr(dls.train_ds, 'loss_func', None)
             assert loss_func is not None, "Could not infer loss function from the data, please pass a loss function."
         self.loss_func = loss_func
-        self.path = path if path is not None else getattr(dls, 'path', Path('.'))
+        self.path = Path(path) if path is not None else getattr(dls, 'path', Path('.'))
         self.add_cbs([(cb() if isinstance(cb, type) else cb) for cb in L(defaults.callbacks)+L(cbs)])
         self.model.to(self.dls.device)
         if hasattr(self.model, 'reset'): self.model.reset()
@@ -119,7 +119,7 @@ class Learner():
         yield self
         self.add_cbs(cbs)
 
-    def ordered_cbs(self, cb_func): return [cb for cb in sort_by_run(self.cbs) if hasattr(cb, cb_func)]
+    def ordered_cbs(self, event): return [cb for cb in sort_by_run(self.cbs) if hasattr(cb, event)]
 
     def __call__(self, event_name): L(event_name).map(self._call_one)
     def _call_one(self, event_name):
@@ -227,10 +227,11 @@ class Learner():
             return tuple(res)
 
     def predict(self, item, rm_type_tfms=None, with_input=False):
-        dl = self.dls.test_dl([item], rm_type_tfms=rm_type_tfms)
+        dl = self.dls.test_dl([item], rm_type_tfms=rm_type_tfms, num_workers=0)
         inp,preds,_,dec_preds = self.get_preds(dl=dl, with_input=True, with_decoded=True)
-        dec = self.dls.decode_batch((*tuplify(inp),*tuplify(dec_preds)))[0]
         i = getattr(self.dls, 'n_inp', -1)
+        inp = (inp,) if i==1 else tuplify(inp)
+        dec = self.dls.decode_batch(inp + tuplify(dec_preds))[0]
         dec_inp,dec_targ = map(detuplify, [dec[:i],dec[i:]])
         res = dec_targ,dec_preds[0],preds[0]
         if with_input: res = (dec_inp,) + res
@@ -282,21 +283,22 @@ add_docs(Learner, "Group together a `model`, some `dls` and a `loss_func` to han
     remove_cb="Add `cb` from the list of `Callback` and deregister `self` as their learner",
     added_cbs="Context manage that temporarily adds `cbs`",
     removed_cbs="Context manage that temporarily removes `cbs`",
-    ordered_cbs="Return a list of `Callback` for one step `cb_func` in the training loop",
-    create_opt="Create an optimizer with `lr`",
+    ordered_cbs="Return the list of `Callback`, in order, for an `event` in the training loop",
+    create_opt="Create an optimizer with default hyper-parameters",
     one_batch="Train or evaluate `self.model` on batch `(xb,yb)`",
-    all_batches="Train or evaluate `self.model` on all batches of `self.dl`",
+    all_batches="Train or evaluate `self.model` on all the batches of `self.dl`",
     fit="Fit `self.model` for `n_epoch` using `cbs`. Optionally `reset_opt`.",
     validate="Validate on `dl` with potential new `cbs`.",
     get_preds="Get the predictions and targets on the `ds_idx`-th dbunchset or `dl`, optionally `with_input` and `with_loss`",
     predict="Return the prediction on `item`, fully decoded, loss function decoded and probabilities",
-    show_results="Show some predictions on `ds_idx`-th dbunchset or `dl`",
+    show_results="Show some predictions on `ds_idx`-th dataset or `dl`",
     show_training_loop="Show each step in the training loop",
     no_logging="Context manager to temporarily remove `logger`",
     no_mbar="Context manager to temporarily prevent the master progress bar from being created",
     loss_not_reduced="A context manager to evaluate `loss_func` with reduction set to none.",
     save="Save model and optimizer state (if `with_opt`) to `self.path/self.model_dir/file`",
-    load="Load model and optimizer state (if `with_opt`) from `self.path/self.model_dir/file` using `device`"
+    load="Load model and optimizer state (if `with_opt`) from `self.path/self.model_dir/file` using `device`",
+    __call__="Call `event_name` for all `Callback`s in `self.cbs`"
 )
 
 # Cell
@@ -365,7 +367,7 @@ class AvgSmoothLoss(Metric):
 
 # Cell
 class ValueMetric(Metric):
-    "Use to include a pre-calculated metric value (e.g., a metric calculated in a `Callback` and returned in `func`)"
+    "Use to include a pre-calculated metric value (for insance calculated in a `Callback`) and returned by `func`"
     def __init__(self, func, metric_name=None): store_attr(self, 'func, metric_name')
 
     @property
@@ -461,21 +463,8 @@ add_docs(Recorder,
          after_cancel_validate = "Ignore validation metrics for this epoch",
          plot_loss = "Plot the losses from `skip_start` and onward")
 
-defaults.callbacks = [TrainEvalCallback, Recorder]
-
-# Cell
-class FetchPreds(Callback):
-    "A callback to fetch predictions during the training loop"
-    remove_on_fetch = True
-    def __init__(self, ds_idx=1, dl=None, with_input=False, with_decoded=False, cbs=None):
-        self.cbs = L(cbs)
-        store_attr(self, 'ds_idx,dl,with_input,with_decoded')
-
-    def after_validate(self):
-        to_rm = L(cb for cb in self.learn.cbs if getattr(cb, 'remove_on_fetch', False))
-        with self.learn.removed_cbs(to_rm + self.cbs) as learn:
-            self.preds = learn.get_preds(ds_idx=self.ds_idx, dl=self.dl,
-                with_input=self.with_input, with_decoded=self.with_decoded, inner=True)
+if not hasattr(defaults, 'callbacks'): defaults.callbacks = [TrainEvalCallback, Recorder]
+elif Recorder not in defaults.callbacks: defaults.callbacks.append(Recorder)
 
 # Cell
 @patch
@@ -502,14 +491,14 @@ def export(self:Learner, fname='export.pkl', pickle_protocol=2):
     if rank_distrib(): return # don't export if slave proc
     old_dbunch = self.dls
     self.dls = self.dls.new_empty()
-    state = self.opt.state_dict()
+    state = self.opt.state_dict() if self.opt is not None else None
     self.opt = None
     with warnings.catch_warnings():
         #To avoid the warning that come from PyTorch about model not being checked
         warnings.simplefilter("ignore")
         torch.save(self, self.path/fname, pickle_protocol=pickle_protocol)
     self.create_opt()
-    self.opt.load_state_dict(state)
+    if state is not None: self.opt.load_state_dict(state)
     self.dls = old_dbunch
 
 # Cell
@@ -532,11 +521,11 @@ def tta(self:Learner, ds_idx=1, dl=None, n=4, item_tfms=None, batch_tfms=None, b
         aug_preds = []
         for i in self.progress.mbar if hasattr(self,'progress') else range(n):
             self.epoch = i #To keep track of progress on mbar since the progress callback will use self.epoch
-            aug_preds.append(self.get_preds(ds_idx, inner=True)[0][None])
+            aug_preds.append(self.get_preds(dl=dl, inner=True)[0][None])
     aug_preds = torch.cat(aug_preds)
     aug_preds = aug_preds.max(0)[0] if use_max else aug_preds.mean(0)
     self.epoch = n
-    with dl.dataset.set_split_idx(1): preds,targs = self.get_preds(ds_idx, inner=True)
+    with dl.dataset.set_split_idx(1): preds,targs = self.get_preds(dl=dl, inner=True)
     if use_max: return torch.stack([preds, aug_preds], 0).max(0)[0],targs
     preds = (aug_preds,preds) if beta is None else torch.lerp(aug_preds, preds, beta)
     return preds,targs
