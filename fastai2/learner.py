@@ -92,6 +92,7 @@ class Learner():
     @metrics.setter
     def metrics(self,v): self._metrics = L(v).map(mk_metric)
 
+    def _grab_cbs(self, cb_cls): return L(cb for cb in self.cbs if isinstance(cb, cb_cls))
     def add_cbs(self, cbs): L(cbs).map(self.add_cb)
     def remove_cbs(self, cbs): L(cbs).map(self.remove_cb)
     def add_cb(self, cb):
@@ -103,9 +104,11 @@ class Learner():
         return self
 
     def remove_cb(self, cb):
-        cb.learn = None
-        if hasattr(self, cb.name): delattr(self, cb.name)
-        if cb in self.cbs: self.cbs.remove(cb)
+        if isinstance(cb, type): self.remove_cbs(self._grab_cbs(cb))
+        else:
+            cb.learn = None
+            if hasattr(self, cb.name): delattr(self, cb.name)
+            if cb in self.cbs: self.cbs.remove(cb)
 
     @contextmanager
     def added_cbs(self, cbs):
@@ -207,10 +210,12 @@ class Learner():
 
     @delegates(GatherPredsCallback.__init__)
     def get_preds(self, ds_idx=1, dl=None, with_input=False, with_decoded=False, with_loss=False, act=None,
-                  inner=False, **kwargs):
+                  inner=False, reorder=True, **kwargs):
         if dl is None: dl = self.dls[ds_idx].new(shuffled=False, drop_last=False)
+        if reorder and hasattr(dl, 'get_idxs'):
+            idxs = dl.get_idxs()
+            dl = dl.new(get_idxs = lambda: idxs)
         cb = GatherPredsCallback(with_input=with_input, with_loss=with_loss, **kwargs)
-        #with self.no_logging(), self.added_cbs(cb), self.loss_not_reduced(), self.no_mbar():
         ctx_mgrs = [self.no_logging(), self.added_cbs(cb), self.no_mbar()]
         if with_loss: ctx_mgrs.append(self.loss_not_reduced())
         with ExitStack() as stack:
@@ -224,6 +229,7 @@ class Learner():
             if res[pred_i] is not None:
                 res[pred_i] = act(res[pred_i])
                 if with_decoded: res.insert(pred_i+2, getattr(self.loss_func, 'decodes', noop)(res[pred_i]))
+            if reorder and hasattr(dl, 'get_idxs'): res = nested_reorder(res, tensor(idxs).argsort())
             return tuple(res)
 
     def predict(self, item, rm_type_tfms=None, with_input=False):

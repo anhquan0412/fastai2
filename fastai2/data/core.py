@@ -11,8 +11,11 @@ from .load import *
 @typedispatch
 def show_batch(x, y, samples, ctxs=None, max_n=9, **kwargs):
     if ctxs is None: ctxs = Inf.nones
-    for i in range_of(samples[0]):
-        ctxs = [b.show(ctx=c, **kwargs) for b,c,_ in zip(samples.itemgot(i),ctxs,range(max_n))]
+    if hasattr(samples[0], 'show'):
+        ctxs = [s.show(ctx=c, **kwargs) for s,c,_ in zip(samples,ctxs,range(max_n))]
+    else:
+        for i in range_of(samples[0]):
+            ctxs = [b.show(ctx=c, **kwargs) for b,c,_ in zip(samples.itemgot(i),ctxs,range(max_n))]
     return ctxs
 
 # Cell
@@ -156,7 +159,7 @@ class DataLoaders(GetAttr):
             if nm in kwargs: kwargs[nm] = Pipeline(kwargs[nm])
         kwargs = merge(defaults, {k: tuplify(v, match=ds) for k,v in kwargs.items()})
         kwargs = [{k: v[i] for k,v in kwargs.items()} for i in range_of(ds)]
-        return cls(*[dl_type(d, **k) for d,k in zip(ds, kwargs)], path=path, device=device)
+        return cls(*[dl_type(d, bs=bs, **k) for d,k in zip(ds, kwargs)], path=path, device=device)
 
     @classmethod
     def from_dblock(cls, dblock, source, path='.',  bs=64, val_bs=None, shuffle_train=True, device=None, **kwargs):
