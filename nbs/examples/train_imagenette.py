@@ -52,7 +52,7 @@ def main(
 ):
     "Training of Imagenette."
 
-    gpu = setup_distrib(gpu)
+    # gpu = setup_distrib(gpu)
     if gpu is not None: torch.cuda.set_device(gpu)
     if   opt=='adam'  : opt_func = partial(Adam, mom=mom, sqr_mom=sqrmom, eps=eps)
     elif opt=='rms'   : opt_func = partial(RMSprop, sqr_mom=sqrmom)
@@ -66,13 +66,21 @@ def main(
 
     for run in range(runs):
         print(f'Run: {run}')
-        learn = Learner(dls, m(c_out=10, act_cls=act_fn, sa=sa, sym=sym, pool=pool), opt_func=opt_func, \
+        learn = Learner(dls, m(n_out=10, act_cls=act_fn, sa=sa, sym=sym, pool=pool), opt_func=opt_func, \
                 metrics=[accuracy,top_k_accuracy], loss_func=LabelSmoothingCrossEntropy())
         if dump: print(learn.model); exit()
         if fp16: learn = learn.to_fp16()
         cbs = MixUp(mixup) if mixup else []
-        #n_gpu = torch.cuda.device_count()
-        #if gpu is None and n_gpu: learn.to_parallel()
-        if num_distrib()>1: learn.to_distributed(gpu) # Requires `-m fastai2.launch`
-        learn.fit_flat_cos(epochs, lr, wd=1e-2, cbs=cbs)
 
+        n_gpu = torch.cuda.device_count()
+
+        # The old way to use DataParallel, or DistributedDataParallel training:
+        # if gpu is None and n_gpu: learn.to_parallel()
+        # if num_distrib()>1: learn.to_distributed(gpu) # Requires `-m fastai2.launch`
+
+        # the context manager way of dp/ddp, both can handle single GPU base case.
+        ctx = learn.parallel_ctx if gpu is None and n_gpu else learn.distrib_ctx
+
+        with partial(ctx, gpu)(): # distributed traing requires "-m fastai2.launch"
+            print(f"Training in {ctx.__name__} context on GPU {gpu if gpu is not None else list(range(n_gpu))}")
+            learn.fit_flat_cos(epochs, lr, wd=1e-2, cbs=cbs)
