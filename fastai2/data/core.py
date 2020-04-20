@@ -32,6 +32,7 @@ def show_results(x, y, samples, outs, ctxs=None, max_n=9, **kwargs):
 _batch_tfms = ('after_item','before_batch','after_batch')
 
 # Cell
+@log_args(but_as=DataLoader.__init__)
 @delegates()
 class TfmdDL(DataLoader):
     "Transformed `DataLoader`"
@@ -315,8 +316,9 @@ class Datasets(FilteredBase):
     def set_split_idx(self, i):
         old_split_idx = self.split_idx
         for tl in self.tls: tl.tfms.split_idx = i
-        yield self
-        for tl in self.tls: tl.tfms.split_idx = old_split_idx
+        try: yield self
+        finally:
+            for tl in self.tls: tl.tfms.split_idx = old_split_idx
 
     _docs=dict(
         decode="Compose `decode` of all `tuple_tfms` then all `tfms` on `i`",
