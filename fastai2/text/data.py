@@ -9,10 +9,11 @@ from ..data.all import *
 from .core import *
 
 # Cell
-def make_vocab(count, min_freq=3, max_vocab=60000):
+def make_vocab(count, min_freq=3, max_vocab=60000, special_toks=None):
     "Create a vocab of `max_vocab` size from `Counter` `count` with items present more than `min_freq`"
     vocab = [o for o,c in count.most_common(max_vocab) if c >= min_freq]
-    for o in reversed(defaults.text_spec_tok): #Make sure all special tokens are in the vocab
+    special_toks = ifnone(special_toks, defaults.text_spec_tok)
+    for o in reversed(special_toks): #Make sure all special tokens are in the vocab
         if o in vocab: vocab.remove(o)
         vocab.insert(0, o)
     vocab = vocab[:max_vocab]
@@ -28,15 +29,17 @@ TensorText.__doc__ = "Semantic type for a tensor representing text in language m
 # Cell
 class Numericalize(Transform):
     "Reversible transform of tokenized texts to numericalized ids"
-    def __init__(self, vocab=None, min_freq=3, max_vocab=60000):
-        store_attr(self, 'vocab,min_freq,max_vocab')
+    def __init__(self, vocab=None, min_freq=3, max_vocab=60000, special_toks=None):
+        store_attr(self, 'vocab,min_freq,max_vocab,special_toks')
         self.o2i = None if vocab is None else defaultdict(int, {v:k for k,v in enumerate(vocab)})
 
     def setups(self, dsets):
         if dsets is None: return
         if self.vocab is None:
             count = dsets.counter if hasattr(dsets, 'counter') else Counter(p for o in dsets for p in o)
-            self.vocab = make_vocab(count, min_freq=self.min_freq, max_vocab=self.max_vocab)
+            if self.special_toks is None and hasattr(dsets, 'special_toks'):
+                self.special_toks = dsets.special_toks
+            self.vocab = make_vocab(count, min_freq=self.min_freq, max_vocab=self.max_vocab, special_toks=self.special_toks)
             self.o2i = defaultdict(int, {v:k for k,v in enumerate(self.vocab) if v != 'xxfake'})
 
     def encodes(self, o): return TensorText(tensor([self.o2i  [o_] for o_ in o]))
@@ -61,6 +64,7 @@ def _get_lengths(ds):
 
 # Cell
 #TODO: add backward
+@log_args(but_as=TfmdDL.__init__)
 @delegates()
 class LMDataLoader(TfmdDL):
     "A `DataLoader` suitable for language modeling"
@@ -231,7 +235,7 @@ class TextDataLoaders(DataLoaders):
         if y_block is not None and not is_lm: blocks += (y_block if is_listy(y_block) else [y_block])
         splitter = RandomSplitter(valid_pct, seed=seed) if valid_col is None else ColSplitter(valid_col)
         dblock = DataBlock(blocks=blocks,
-                           get_x=ColReader(text_col),
+                           get_x=ColReader("text"),
                            get_y=None if is_lm else ColReader(label_col, label_delim=label_delim),
                            splitter=splitter)
         return cls.from_dblock(dblock, df, path=path, seq_len=seq_len, **kwargs)

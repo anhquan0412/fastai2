@@ -71,6 +71,13 @@ _before_epoch = [event.begin_fit, event.begin_epoch]
 _after_epoch  = [event.after_epoch, event.after_fit]
 
 # Cell
+class _ConstantFunc():
+    "Returns a function that returns `o`"
+    def __init__(self, o): self.o = o
+    def __call__(self, *args, **kwargs): return self.o
+
+# Cell
+@log_args(but='dls,model,opt_func,cbs')
 class Learner():
     def __init__(self, dls, model, loss_func=None, opt_func=Adam, lr=defaults.lr, splitter=trainable_params, cbs=None,
                  metrics=None, path=None, model_dir='models', wd=None, wd_bn_bias=False, train_bn=True,
@@ -113,14 +120,14 @@ class Learner():
     @contextmanager
     def added_cbs(self, cbs):
         self.add_cbs(cbs)
-        yield
-        self.remove_cbs(cbs)
+        try: yield
+        finally: self.remove_cbs(cbs)
 
     @contextmanager
     def removed_cbs(self, cbs):
         self.remove_cbs(cbs)
-        yield self
-        self.add_cbs(cbs)
+        try: yield self
+        finally: self.add_cbs(cbs)
 
     def ordered_cbs(self, event): return [cb for cb in sort_by_run(self.cbs) if hasattr(cb, event)]
 
@@ -171,15 +178,13 @@ class Learner():
 
     def _do_epoch_validate(self, ds_idx=1, dl=None):
         if dl is None: dl = self.dls[ds_idx]
-        names = ['shuffle', 'drop_last']
         try:
-            dl,old,has = change_attrs(dl, names, [False,False])
             self.dl = dl;                                    self('begin_validate')
             with torch.no_grad(): self.all_batches()
         except CancelValidException:                         self('after_cancel_validate')
-        finally:
-            dl,*_ = change_attrs(dl, names, old, has);       self('after_validate')
+        finally:                                             self('after_validate')
 
+    @log_args(but='cbs')
     def fit(self, n_epoch, lr=None, wd=None, cbs=None, reset_opt=False):
         with self.added_cbs(cbs):
             if reset_opt or not self.opt: self.create_opt()
@@ -214,7 +219,7 @@ class Learner():
         if dl is None: dl = self.dls[ds_idx].new(shuffled=False, drop_last=False)
         if reorder and hasattr(dl, 'get_idxs'):
             idxs = dl.get_idxs()
-            dl = dl.new(get_idxs = lambda: idxs)
+            dl = dl.new(get_idxs = _ConstantFunc(idxs))
         cb = GatherPredsCallback(with_input=with_input, with_loss=with_loss, **kwargs)
         ctx_mgrs = [self.no_logging(), self.added_cbs(cb), self.no_mbar()]
         if with_loss: ctx_mgrs.append(self.loss_not_reduced())
@@ -495,6 +500,7 @@ add_docs(Learner,
 def export(self:Learner, fname='export.pkl', pickle_protocol=2):
     "Export the content of `self` without the items and the optimizer state for inference"
     if rank_distrib(): return # don't export if slave proc
+    self.dl = None
     old_dbunch = self.dls
     self.dls = self.dls.new_empty()
     state = self.opt.state_dict() if self.opt is not None else None
@@ -535,3 +541,35 @@ def tta(self:Learner, ds_idx=1, dl=None, n=4, item_tfms=None, batch_tfms=None, b
     if use_max: return torch.stack([preds, aug_preds], 0).max(0)[0],targs
     preds = (aug_preds,preds) if beta is None else torch.lerp(aug_preds, preds, beta)
     return preds,targs
+
+# Cell
+@patch
+def gather_args(self:Learner):
+    "Gather config parameters accessible to the learner"
+    # init_args
+    cb_args = {k:v for cb in self.cbs for k,v in getattr(cb,'init_args',{}).items()}
+    args = {**getattr(self,'init_args',{}), **cb_args, **getattr(self.dls,'init_args',{}),
+            **getattr(self.opt,'init_args',{}), **getattr(self.loss_func,'init_args',{})}
+    # callbacks used
+    args.update({f'{cb}':True for cb in self.cbs})
+    # input dimensions
+    try:
+        n_inp = self.dls.train.n_inp
+        args['n_inp'] = n_inp
+        xb = self.dls.train.one_batch()[:n_inp]
+        args.update({f'input dim {i}':d for i,d in enumerate(list(detuplify(xb).shape))})
+    except: print(f'Could not gather input dimensions')
+    # other useful information
+    with ignore_exceptions(): args['batch size'] = self.dls.bs
+    with ignore_exceptions(): args['batch per epoch'] = len(self.dls.train)
+    with ignore_exceptions(): args['model parameters'] = total_params(self.model)[0]
+    with ignore_exceptions(): args['loss function'] = f'{self.loss_func}'
+    with ignore_exceptions(): args['device'] = self.dls.device.type
+    with ignore_exceptions(): args['optimizer'] = self.opt_func.__name__
+    with ignore_exceptions(): args['frozen'] = bool(self.opt.frozen_idx)
+    with ignore_exceptions(): args['frozen idx'] = self.opt.frozen_idx
+    with ignore_exceptions(): args['dataset.tfms'] = f'{self.dls.dataset.tfms}'
+    with ignore_exceptions(): args['dls.after_item'] = f'{self.dls.after_item}'
+    with ignore_exceptions(): args['dls.before_batch'] = f'{self.dls.before_batch}'
+    with ignore_exceptions(): args['dls.after_batch'] = f'{self.dls.after_batch}'
+    return args
