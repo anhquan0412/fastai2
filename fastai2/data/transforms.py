@@ -278,9 +278,10 @@ class EncodedMultiCategorize(Categorize):
 # Cell
 class RegressionSetup(Transform):
     "Transform that floatifies targets"
+    loss_func=MSELossFlat()
     def __init__(self, c=None): self.c = c
     def encodes(self, o): return tensor(o).float()
-    def decodes(self, o): return TitledFloat(o)
+    def decodes(self, o): return TitledFloat(o) if o.ndim==0 else TitledTuple(o_.item() for o_ in o)
     def setups(self, dsets):
         if self.c is not None: return
         try: self.c = len(dsets[0]) if hasattr(dsets[0], '__len__') else 1
@@ -306,7 +307,7 @@ class IntToFloatTensor(Transform):
     order = 10 #Need to run after PIL transforms on the GPU
     def __init__(self, div=255., div_mask=1): store_attr(self, 'div,div_mask')
     def encodes(self, o:TensorImage): return o.float().div_(self.div)
-    def encodes(self, o:TensorMask ): return o.div_(self.div_mask).long()
+    def encodes(self, o:TensorMask ): return o.long() // self.div_mask
     def decodes(self, o:TensorImage): return ((o.clamp(0., 1.) * self.div).long()) if self.div else o
 
 # Cell
