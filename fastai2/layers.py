@@ -271,11 +271,9 @@ def AvgPool(ks=2, stride=None, padding=0, ndim=2, ceil_mode=False):
 
 # Cell
 @log_args
-@funcs_kwargs
 class BaseLoss():
     "Same as `loss_cls`, but flattens input and target."
     activation=decodes=noops
-    _methods = "activation decodes".split()
     def __init__(self, loss_cls, *args, axis=-1, flatten=True, floatify=False, is_2d=True, **kwargs):
         store_attr(self, "axis,flatten,floatify,is_2d")
         self.func = loss_cls(*args,**kwargs)
@@ -554,7 +552,7 @@ class ResBlock(Module):
         self.convpath = nn.Sequential(*convpath)
         idpath = []
         if ni!=nf: idpath.append(ConvLayer(ni, nf, 1, act_cls=None, ndim=ndim, **kwargs))
-        if stride!=1: idpath.insert((1,0)[pool_first], pool(2, ndim=ndim, ceil_mode=True))
+        if stride!=1: idpath.insert((1,0)[pool_first], pool(stride, ndim=ndim, ceil_mode=True))
         self.idpath = nn.Sequential(*idpath)
         self.act = defaults.activation(inplace=True) if act_cls is defaults.activation else act_cls()
 
