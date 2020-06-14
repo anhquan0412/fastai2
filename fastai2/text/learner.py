@@ -55,7 +55,6 @@ def _rm_module(n):
     return '.'.join(t)
 
 # Cell
-#For previous versions compatibility, remove for release
 def clean_raw_keys(wgts):
     keys = list(wgts.keys())
     for k in keys:
@@ -64,7 +63,6 @@ def clean_raw_keys(wgts):
     return wgts
 
 # Cell
-#For previous versions compatibility, remove for release
 def load_model_text(file, model, opt, with_opt=None, device=None, strict=True):
     "Load `model` from `file` along with `opt` (if available, and if `with_opt`)"
     distrib_barrier()
@@ -87,11 +85,11 @@ class TextLearner(Learner):
     "Basic class for a `Learner` in NLP."
     def __init__(self, dls, model, alpha=2., beta=1., moms=(0.8,0.7,0.8), **kwargs):
         super().__init__(dls, model, moms=moms, **kwargs)
-        self.add_cbs([ModelReseter(), RNNRegularizer(alpha=alpha, beta=beta)])
+        self.add_cbs([ModelResetter(), RNNRegularizer(alpha=alpha, beta=beta)])
 
     def save_encoder(self, file):
         "Save the encoder to `file` in the model directory"
-        if rank_distrib(): return # don't save if slave proc
+        if rank_distrib(): return # don't save if child proc
         encoder = get_model(self.model)[0]
         if hasattr(encoder, 'module'): encoder = encoder.module
         torch.save(encoder.state_dict(), join_path_file(file, self.path/self.model_dir, ext='.pth'))
