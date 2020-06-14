@@ -2,8 +2,8 @@
 
 __all__ = ['make_date', 'add_datepart', 'add_elapsed_times', 'cont_cat_split', 'df_shrink_dtypes', 'df_shrink',
            'Tabular', 'TabularPandas', 'TabularProc', 'Categorify', 'setups', 'encodes', 'decodes', 'NormalizeTab',
-           'setups', 'encodes', 'decodes', 'FillStrategy', 'FillMissing', 'ReadTabBatch', 'TabDataLoader', 'encodes',
-           'decodes', 'setups', 'encodes', 'decodes']
+           'setups', 'encodes', 'decodes', 'FillStrategy', 'FillMissing', 'ReadTabBatch', 'TabDataLoader', 'setups',
+           'encodes', 'decodes', 'setups', 'encodes', 'decodes']
 
 # Cell
 from ..torch_basics import *
@@ -142,6 +142,7 @@ class Tabular(CollBase, GetAttr, FilteredBase):
         if inplace and splits is not None and pd.options.mode.chained_assignment is not None:
             warn("Using inplace with splits will trigger a pandas error. Set `pd.options.mode.chained_assignment=None` to avoid it.")
         if not inplace: df = df.copy()
+        if reduce_memory: df = df_shrink(df)
         if splits is not None: df = df.iloc[sum(splits, [])]
         self.dataloaders = delegates(self._dl_type.__init__)(self.dataloaders)
         super().__init__(df)
@@ -157,9 +158,6 @@ class Tabular(CollBase, GetAttr, FilteredBase):
             procs = L(procs) + y_block.type_tfms
         self.cat_names,self.cont_names,self.procs = L(cat_names),L(cont_names),Pipeline(procs)
         self.split = len(df) if splits is None else len(splits[0])
-        if reduce_memory:
-            if len(self.cat_names) > 0: self.reduce_cats()
-            if len(self.cont_names) > 0: self.reduce_conts()
         if do_setup: self.setup()
 
     def new(self, df):
@@ -170,8 +168,6 @@ class Tabular(CollBase, GetAttr, FilteredBase):
     def copy(self): self.items = self.items.copy(); return self
     def decode(self): return self.procs.decode(self)
     def decode_row(self, row): return self.new(pd.DataFrame(row).T).decode().items.iloc[0]
-    def reduce_cats(self): self.train[self.cat_names] = self.train[self.cat_names].astype('category')
-    def reduce_conts(self): self[self.cont_names] = self[self.cont_names].astype(np.float32)
     def show(self, max_n=10, **kwargs): display_df(self.new(self.all_cols[:max_n]).decode().items)
     def setup(self): self.procs.setup(self)
     def process(self): self.procs(self)
@@ -194,6 +190,7 @@ properties(Tabular,'loc','iloc','targ','all_col_names','n_subsets','x_names','y'
 
 # Cell
 class TabularPandas(Tabular):
+    "A `Tabular` object with transforms"
     def transform(self, cols, f, all_col=True):
         if not all_col: cols = [c for c in cols if c in self.items.columns]
         if len(cols) > 0: self[cols] = self[cols].transform(f)
@@ -230,7 +227,7 @@ def _decode_cats(voc, c): return c.map(dict(enumerate(voc[c.name].items)))
 
 # Cell
 class Categorify(TabularProc):
-    "Transform the categorical variables to that type."
+    "Transform the categorical variables to something similar to `pd.Categorical`"
     order = 1
     def setups(self, to):
         self.classes = {n:CategoryMap(to.iloc[:,n].items, add_na=(n in to.cat_names)) for n in to.cat_names}
@@ -244,9 +241,9 @@ class Categorify(TabularProc):
 def setups(self, to:Tabular):
     if len(to.y_names) > 0:
         if self.vocab is None:
-            self.vocab = CategoryMap(getattr(to, 'train', to).iloc[:,to.y_names[0]].items)
+            self.vocab = CategoryMap(getattr(to, 'train', to).iloc[:,to.y_names[0]].items, strict=True)
         else:
-            self.vocab = CategoryMap(self.vocab, add_na=self.add_na)
+            self.vocab = CategoryMap(self.vocab, sort=False, add_na=self.add_na)
         self.c = len(self.vocab)
     return self(to)
 
@@ -262,7 +259,7 @@ def decodes(self, to:Tabular):
 
 # Cell
 class NormalizeTab(TabularProc):
-    "Normalize the continuous variables."
+    "Normalize the continuous variables"
     order = 2
     def setups(self, dsets): self.means,self.stds = dsets.conts.mean(),dsets.conts.std(ddof=0)+1e-7
     def encodes(self, to): to.conts = (to.conts-self.means) / self.stds
@@ -344,6 +341,7 @@ def show_batch(x: Tabular, y, its, max_n=10, ctxs=None):
 # Cell
 @delegates()
 class TabDataLoader(TfmdDL):
+    "A transformed `DataLoader` for Tabular data"
     do_item = noops
     def __init__(self, dataset, bs=16, shuffle=False, after_batch=None, num_workers=0, **kwargs):
         if after_batch is None: after_batch = L(TransformBlock().batch_tfms)+ReadTabBatch(dataset)
@@ -354,6 +352,11 @@ class TabDataLoader(TfmdDL):
 TabularPandas._dl_type = TabDataLoader
 
 # Cell
+@EncodedMultiCategorize
+def setups(self, to:Tabular):
+    self.c = len(self.vocab)
+    return self(to)
+
 @EncodedMultiCategorize
 def encodes(self, to:Tabular): return to
 
