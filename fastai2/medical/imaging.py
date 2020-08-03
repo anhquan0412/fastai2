@@ -41,7 +41,7 @@ class PILDicom(PILBase):
     def create(cls, fn:(Path,str,bytes), mode=None)->None:
         "Open a `DICOM file` from path `fn` or bytes `fn` and load it as a `PIL Image`"
         if isinstance(fn,bytes): im = Image.fromarray(pydicom.dcmread(pydicom.filebase.DicomBytesIO(fn)).pixel_array)
-        if isinstance(fn,Path): im = Image.fromarray(dcmread(fn).pixel_array)
+        if isinstance(fn,(Path,str)): im = Image.fromarray(dcmread(fn).pixel_array)
         im.load()
         im = im._new(im.im)
         return cls(im.convert(mode) if mode else im)
@@ -125,6 +125,7 @@ def windowed(self:DcmDataset, w, l):
     return self.scaled_px.windowed(w,l)
 
 # Cell
+# From https://radiopaedia.org/articles/windowing-ct
 dicom_windows = types.SimpleNamespace(
     brain=(80,40),
     subdural=(254,100),

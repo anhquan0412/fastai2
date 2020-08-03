@@ -35,12 +35,16 @@ except ImportError:
     WrapperDescriptorType = type(object.__init__)
     MethodWrapperType = type(object().__str__)
     MethodDescriptorType = type(str.join)
-from types import BuiltinFunctionType,BuiltinMethodType,MethodType,FunctionType
+from types import BuiltinFunctionType,BuiltinMethodType,MethodType,FunctionType,LambdaType
 
 pd.options.display.max_colwidth = 600
 NoneType = type(None)
 string_classes = (str,bytes)
 mimetypes.init()
+
+# PyTorch warnings
+warnings.filterwarnings("ignore", message='.*nonzero.*', category=UserWarning)
+warnings.filterwarnings("ignore", message='.*grid_sample.*', category=UserWarning)
 
 def is_iter(o):
     "Test whether `o` can be used in a `for` loop"

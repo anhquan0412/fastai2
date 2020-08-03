@@ -37,11 +37,12 @@ class GradientAccumulation(Callback):
 # Cell
 bn_types = (nn.BatchNorm1d, nn.BatchNorm2d, nn.BatchNorm3d)
 
-def set_bn_eval(m:nn.Module)->None:
+def set_bn_eval(m:nn.Module, use_eval=True)->None:
     "Set bn layers in eval mode for all recursive children of `m`."
     for l in m.children():
         if isinstance(l, bn_types) and not next(l.parameters()).requires_grad:
-            l.eval()
+            if use_eval: l.eval()
+            else:        l.train()
         set_bn_eval(l)
 
 class BnFreeze(Callback):
