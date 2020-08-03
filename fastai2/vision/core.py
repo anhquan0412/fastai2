@@ -248,7 +248,6 @@ class PointScaler(Transform):
 # Cell
 class BBoxLabeler(Transform):
     def setups(self, dl): self.vocab = dl.vocab
-    def before_call(self): self.bbox,self.lbls = None,None
 
     def decode (self, x, **kwargs):
         self.bbox,self.lbls = None,None
@@ -263,6 +262,7 @@ class BBoxLabeler(Transform):
         return self.bbox if self.lbls is None else LabeledBBox(self.bbox, self.lbls)
 
 # Cell
+#LabeledBBox can be sent in a tl with MultiCategorize (depending on the order of the tls) but it is already decoded.
 @MultiCategorize
 def decodes(self, x:LabeledBBox): return x
 
